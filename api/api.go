@@ -1,11 +1,14 @@
 package api
 
 import (
-	"google.golang.org/grpc"
+	"context"
+
+	"github.com/spaceuptech/space-api-go/api/mgo"
+	"github.com/spaceuptech/space-api-go/api/sql"
 
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/proto"
-	"github.com/spaceuptech/space-api-go/api/sql"
+	"github.com/spaceuptech/space-api-go/api/model"
+	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
@@ -16,14 +19,11 @@ type API struct {
 
 // Init create a new instance of the API object
 func Init(project, host, port string) (*API, error) {
-	conn, err := grpc.Dial(host + ":" + port)
+	t, err := transport.Init(host, port)
 	if err != nil {
 		return nil, err
 	}
-
-	stub := proto.NewSpaceCloudClient(conn)
-
-	c := &config.Config{Project: project, Host: host, Port: port, Stub: stub}
+	c := &config.Config{Project: project, Transport: t}
 
 	return &API{c}, err
 }
@@ -39,8 +39,8 @@ func (api *API) SetProjectID(project string) {
 }
 
 // Mongo returns a mongo db client instance
-func (api *API) Mongo() {
-
+func (api *API) Mongo() *mgo.Mongo {
+	return mgo.Init(api.config)
 }
 
 // MySQL returns a mysql client instance
@@ -51,4 +51,9 @@ func (api *API) MySQL() *sql.SQL {
 // Postgres creates a postgres client instance
 func (api *API) Postgres() *sql.SQL {
 	return sql.Init(utils.Postgres, api.config)
+}
+
+// Call invokes the specified function on the backend
+func (api *API) Call(engine, function string, params utils.M, timeout int) (*model.Response, error) {
+	return api.config.Transport.Call(context.TODO(), api.config.Token, engine, function, params, timeout)
 }

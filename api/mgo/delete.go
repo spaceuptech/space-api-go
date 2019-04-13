@@ -1,10 +1,9 @@
-package sql
+package mgo
 
 import (
 	"context"
 
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/mgo"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/utils"
@@ -28,9 +27,9 @@ func initDelete(ctx context.Context, db, col, op string, config *config.Config) 
 // Where sets the where clause for the request
 func (d *Delete) Where(conds ...utils.M) *Delete {
 	if len(conds) == 1 {
-		d.find = mgo.GenerateFind(conds[0])
+		d.find = GenerateFind(conds[0])
 	} else {
-		d.find = mgo.GenerateFind(utils.And(conds...))
+		d.find = GenerateFind(utils.And(conds...))
 	}
 	return d
 }

@@ -10,14 +10,14 @@ import (
 )
 
 // Delete triggers the gRPC delete function on space cloud
-func Delete(ctx context.Context, stub proto.SpaceCloudClient, meta *proto.Meta, op string, find utils.M) (*model.Response, error) {
+func (t *Transport) Delete(ctx context.Context, meta *proto.Meta, op string, find utils.M) (*model.Response, error) {
 	findJSON, err := json.Marshal(find)
 	if err != nil {
 		return nil, err
 	}
 
 	req := proto.DeleteRequest{Find: findJSON, Meta: meta, Operation: op}
-	res, err := stub.Delete(ctx, &req)
+	res, err := t.stub.Delete(ctx, &req)
 	if err != nil {
 		return nil, err
 	}

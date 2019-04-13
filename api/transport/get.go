@@ -10,14 +10,14 @@ import (
 )
 
 // Read triggers the gRPC read function on space cloud
-func Read(ctx context.Context, stub proto.SpaceCloudClient, meta *proto.Meta, find utils.M, op string, options *proto.ReadOptions) (*model.Response, error) {
+func (t *Transport) Read(ctx context.Context, meta *proto.Meta, find utils.M, op string, options *proto.ReadOptions) (*model.Response, error) {
 	findJSON, err := json.Marshal(find)
 	if err != nil {
 		return nil, err
 	}
 
 	req := proto.ReadRequest{Find: findJSON, Meta: meta, Operation: op, Options: options}
-	res, err := stub.Read(ctx, &req)
+	res, err := t.stub.Read(ctx, &req)
 	if err != nil {
 		return nil, err
 	}

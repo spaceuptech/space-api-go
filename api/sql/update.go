@@ -7,7 +7,6 @@ import (
 	"github.com/spaceuptech/space-api-go/api/mgo"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
-	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
@@ -45,5 +44,5 @@ func (u *Update) Set(obj utils.M) *Update {
 
 // Apply executes the operation and returns the result
 func (u *Update) Apply() (*model.Response, error) {
-	return transport.Update(u.ctx, u.config.Stub, u.meta, u.op, u.find, u.update)
+	return u.config.Transport.Update(u.ctx, u.meta, u.op, u.find, u.update)
 }

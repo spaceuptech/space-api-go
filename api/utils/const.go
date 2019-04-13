@@ -6,6 +6,15 @@ const (
 
 	// One is used when oly a single record needs to be worked on
 	One string = "one"
+
+	// Count is used to count the number of documents returned
+	Count string = "count"
+
+	// Distinct is used to get the distinct values
+	Distinct string = "distinct"
+
+	// Upsert is used to upsert documents
+	Upsert string = "upsert"
 )
 
 const (

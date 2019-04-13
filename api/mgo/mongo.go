@@ -1,8 +1,82 @@
 package mgo
 
 import (
+	"context"
+
+	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
+
+// Mongo is the client responsible to commuicate with the Mongo crud module
+type Mongo struct {
+	config *config.Config
+	db     string
+}
+
+// Init returns a Mongo client object
+func Init(config *config.Config) *Mongo {
+	return &Mongo{db: utils.Mongo, config: config}
+}
+
+// Insert returns a helper to fire a insert request
+func (s *Mongo) Insert(col string) *Insert {
+	return initInsert(context.TODO(), s.db, col, s.config)
+}
+
+// Get returns a helper to fire a get all request
+func (s *Mongo) Get(col string) *Get {
+	return initGet(context.TODO(), s.db, col, utils.All, s.config)
+}
+
+// GetOne returns a helper to fire a get one request
+func (s *Mongo) GetOne(col string) *Get {
+	return initGet(context.TODO(), s.db, col, utils.One, s.config)
+}
+
+// Count returns a helper to fire a get count request
+func (s *Mongo) Count(col string) *Get {
+	return initGet(context.TODO(), s.db, col, utils.Count, s.config)
+}
+
+// Distinct returns a helper to fire a get distinct request
+func (s *Mongo) Distinct(col string) *Get {
+	return initGet(context.TODO(), s.db, col, utils.Distinct, s.config)
+}
+
+// Update returns a helper to fire an update all request
+func (s *Mongo) Update(col string) *Update {
+	return initUpdate(context.TODO(), s.db, col, utils.All, s.config)
+}
+
+// UpdateOne returns a helper to fire an update one request
+func (s *Mongo) UpdateOne(col string) *Update {
+	return initUpdate(context.TODO(), s.db, col, utils.One, s.config)
+}
+
+// Upsert returns a helper to fire an upsert request
+func (s *Mongo) Upsert(col string) *Update {
+	return initUpdate(context.TODO(), s.db, col, utils.Upsert, s.config)
+}
+
+// Delete returns a helper to fire a delete all request
+func (s *Mongo) Delete(col string) *Delete {
+	return initDelete(context.TODO(), s.db, col, utils.All, s.config)
+}
+
+// DeleteOne returns a helper to fire a delete one request
+func (s *Mongo) DeleteOne(col string) *Delete {
+	return initDelete(context.TODO(), s.db, col, utils.One, s.config)
+}
+
+// Aggr returns a helper to fire a aggregation request
+func (s *Mongo) Aggr(col string) *Aggr {
+	return initAggr(context.TODO(), s.db, col, utils.All, s.config)
+}
+
+// AggrOne returns a helper to fire a aggregation request
+func (s *Mongo) AggrOne(col string) *Aggr {
+	return initAggr(context.TODO(), s.db, col, utils.One, s.config)
+}
 
 // GenerateFind generates a mongo db find clause from the provided condition
 func GenerateFind(condition utils.M) utils.M {

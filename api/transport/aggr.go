@@ -8,15 +8,15 @@ import (
 	"github.com/spaceuptech/space-api-go/api/proto"
 )
 
-// Insert triggers the gRPC create function on space cloud
-func (t *Transport) Insert(ctx context.Context, meta *proto.Meta, op string, obj interface{}) (*model.Response, error) {
-	objJSON, err := json.Marshal(obj)
+// Aggr triggers the gRPC aggr function on space cloud
+func (t *Transport) Aggr(ctx context.Context, meta *proto.Meta, op string, pipeline interface{}) (*model.Response, error) {
+	pipelineJSON, err := json.Marshal(pipeline)
 	if err != nil {
 		return nil, err
 	}
 
-	req := proto.CreateRequest{Document: objJSON, Meta: meta, Operation: op}
-	res, err := t.stub.Create(ctx, &req)
+	req := proto.AggregateRequest{Pipeline: pipelineJSON, Meta: meta, Operation: op}
+	res, err := t.stub.Aggregate(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
