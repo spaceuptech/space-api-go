@@ -5,6 +5,8 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/proto"
+	"github.com/spaceuptech/space-api-go/api/sql"
+	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
 // API is the main API object to communicate with space cloud
@@ -42,11 +44,11 @@ func (api *API) Mongo() {
 }
 
 // MySQL returns a mysql client instance
-func (api *API) MySQL() {
-
+func (api *API) MySQL() *sql.SQL {
+	return sql.Init(utils.MySQL, api.config)
 }
 
 // Postgres creates a postgres client instance
-func (api *API) Postgres() {
-
+func (api *API) Postgres() *sql.SQL {
+	return sql.Init(utils.Postgres, api.config)
 }

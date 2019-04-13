@@ -6,18 +6,17 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
-	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
-// Read triggers the gRPC read function on space cloud
-func Read(ctx context.Context, stub proto.SpaceCloudClient, meta *proto.Meta, find utils.M, op string, options *proto.ReadOptions) (*model.Response, error) {
-	findJSON, err := json.Marshal(find)
+// Insert triggers the gRPC create function on space cloud
+func Insert(ctx context.Context, stub proto.SpaceCloudClient, meta *proto.Meta, op string, obj interface{}) (*model.Response, error) {
+	objJSON, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err
 	}
 
-	req := proto.ReadRequest{Find: findJSON, Meta: meta, Operation: op, Options: options}
-	res, err := stub.Read(ctx, &req)
+	req := proto.CreateRequest{Document: objJSON, Meta: meta, Operation: op}
+	res, err := stub.Create(ctx, &req)
 	if err != nil {
 		return nil, err
 	}

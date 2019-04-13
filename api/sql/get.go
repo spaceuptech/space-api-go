@@ -13,6 +13,7 @@ import (
 
 // Get contains the methods for the get operation
 type Get struct {
+	ctx         context.Context
 	meta        *proto.Meta
 	readOptions *proto.ReadOptions
 	op          string
@@ -20,12 +21,11 @@ type Get struct {
 	config      *config.Config
 }
 
-func initGet(db, col string, config *config.Config) *Get {
+func initGet(ctx context.Context, db, col, op string, config *config.Config) *Get {
 	m := &proto.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
 	r := new(proto.ReadOptions)
-	op := "all"
-	f := make(map[string]interface{})
-	return &Get{m, r, op, f, config}
+	f := make(utils.M)
+	return &Get{ctx, m, r, op, f, config}
 }
 
 // Where sets the where clause for the request
@@ -62,12 +62,7 @@ func (get *Get) Limit(limit int) *Get {
 	return get
 }
 
-func (get *Get) one() (*model.Response, error) {
-	get.op = "one"
-	return transport.Read(context.TODO(), get.config.Stub, get.meta, get.find, get.op, get.readOptions)
-}
-
-func (get *Get) all() (*model.Response, error) {
-	get.op = "all"
-	return transport.Read(context.TODO(), get.config.Stub, get.meta, get.find, get.op, get.readOptions)
+// Apply executes the operation and returns the result
+func (get *Get) Apply() (*model.Response, error) {
+	return transport.Read(get.ctx, get.config.Stub, get.meta, get.find, get.op, get.readOptions)
 }
