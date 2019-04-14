@@ -9,15 +9,15 @@ import (
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
-// Read triggers the gRPC read function on space cloud
-func (t *Transport) Read(ctx context.Context, meta *proto.Meta, find utils.M, op string, options *proto.ReadOptions) (*model.Response, error) {
-	findJSON, err := json.Marshal(find)
+// Call triggers the gRPC call function on space cloud
+func (t *Transport) Call(ctx context.Context, token, engine, function string, params utils.M, timeout int) (*model.Response, error) {
+	paramsJSON, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
-	req := proto.ReadRequest{Find: findJSON, Meta: meta, Operation: op, Options: options}
-	res, err := t.stub.Read(ctx, &req)
+	req := proto.FaaSRequest{Params: paramsJSON, Timeout: int64(timeout), Token: token, Engine: engine, Function: function}
+	res, err := t.stub.Call(ctx, &req)
 	if err != nil {
 		return nil, err
 	}

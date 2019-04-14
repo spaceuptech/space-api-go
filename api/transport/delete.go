@@ -9,15 +9,15 @@ import (
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
-// Read triggers the gRPC read function on space cloud
-func (t *Transport) Read(ctx context.Context, meta *proto.Meta, find utils.M, op string, options *proto.ReadOptions) (*model.Response, error) {
+// Delete triggers the gRPC delete function on space cloud
+func (t *Transport) Delete(ctx context.Context, meta *proto.Meta, op string, find utils.M) (*model.Response, error) {
 	findJSON, err := json.Marshal(find)
 	if err != nil {
 		return nil, err
 	}
 
-	req := proto.ReadRequest{Find: findJSON, Meta: meta, Operation: op, Options: options}
-	res, err := t.stub.Read(ctx, &req)
+	req := proto.DeleteRequest{Find: findJSON, Meta: meta, Operation: op}
+	res, err := t.stub.Delete(ctx, &req)
 	if err != nil {
 		return nil, err
 	}

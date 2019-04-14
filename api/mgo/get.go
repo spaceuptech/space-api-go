@@ -1,10 +1,9 @@
-package sql
+package mgo
 
 import (
 	"context"
 
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/mgo"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/utils"
@@ -28,40 +27,46 @@ func initGet(ctx context.Context, db, col, op string, config *config.Config) *Ge
 }
 
 // Where sets the where clause for the request
-func (get *Get) Where(conds ...utils.M) *Get {
+func (g *Get) Where(conds ...utils.M) *Get {
 	if len(conds) == 1 {
-		get.find = mgo.GenerateFind(conds[0])
+		g.find = GenerateFind(conds[0])
 	} else {
-		get.find = mgo.GenerateFind(utils.And(conds...))
+		g.find = GenerateFind(utils.And(conds...))
 	}
-	return get
+	return g
 }
 
 // Select returns fields selectively
-func (get *Get) Select(sel map[string]int32) *Get {
-	get.readOptions.Select = sel
-	return get
+func (g *Get) Select(sel map[string]int32) *Get {
+	g.readOptions.Select = sel
+	return g
 }
 
 // Sort sorts the result
-func (get *Get) Sort(order map[string]int32) *Get {
-	get.readOptions.Sort = order
-	return get
+func (g *Get) Sort(order map[string]int32) *Get {
+	g.readOptions.Sort = order
+	return g
 }
 
 // Skip skips some of the result
-func (get *Get) Skip(skip int) *Get {
-	get.readOptions.Skip = int64(skip)
-	return get
+func (g *Get) Skip(skip int) *Get {
+	g.readOptions.Skip = int64(skip)
+	return g
 }
 
 // Limit limits the number of results returned
-func (get *Get) Limit(limit int) *Get {
-	get.readOptions.Limit = int64(limit)
-	return get
+func (g *Get) Limit(limit int) *Get {
+	g.readOptions.Limit = int64(limit)
+	return g
+}
+
+// Key sets the key for the distinct query
+func (g *Get) Key(key string) *Get {
+	g.readOptions.Distinct = key
+	return g
 }
 
 // Apply executes the operation and returns the result
-func (get *Get) Apply() (*model.Response, error) {
-	return get.config.Transport.Read(get.ctx, get.meta, get.find, get.op, get.readOptions)
+func (g *Get) Apply() (*model.Response, error) {
+	return g.config.Transport.Read(g.ctx, g.meta, g.find, g.op, g.readOptions)
 }
