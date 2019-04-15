@@ -1,8 +1,11 @@
 package transport
 
 import (
+	"crypto/tls"
+
 	"github.com/spaceuptech/space-api-go/api/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // Transport is the objct which handles all communication with the server
@@ -11,8 +14,14 @@ type Transport struct {
 }
 
 // Init initialises a new transport
-func Init(host, port string) (*Transport, error) {
-	conn, err := grpc.Dial(host + ":" + port)
+func Init(host, port string, sslEnabled bool) (*Transport, error) {
+	dialOptions := []grpc.DialOption{}
+
+	if sslEnabled {
+		dialOptions = append(dialOptions, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+	}
+
+	conn, err := grpc.Dial(host+":"+port, dialOptions...)
 	if err != nil {
 		return nil, err
 	}

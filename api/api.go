@@ -17,9 +17,9 @@ type API struct {
 	config *config.Config
 }
 
-// Init create a new instance of the API object
-func Init(project, host, port string) (*API, error) {
-	t, err := transport.Init(host, port)
+// Init initialised a new instance of the API object
+func Init(project, host, port string, sslEnabled bool) (*API, error) {
+	t, err := transport.Init(host, port, sslEnabled)
 	if err != nil {
 		return nil, err
 	}

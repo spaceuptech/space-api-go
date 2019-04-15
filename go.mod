@@ -1,4 +1,4 @@
-module github.com/spaceuptech/space-api-go/api
+module github.com/spaceuptech/space-api-go
 
 require (
 	github.com/golang/protobuf v1.2.0
