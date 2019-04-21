@@ -19,6 +19,8 @@ func Init(host, port string, sslEnabled bool) (*Transport, error) {
 
 	if sslEnabled {
 		dialOptions = append(dialOptions, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+	} else {
+		dialOptions = append(dialOptions, grpc.WithInsecure())
 	}
 
 	conn, err := grpc.Dial(host+":"+port, dialOptions...)
