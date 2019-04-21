@@ -32,7 +32,7 @@ func (i *Insert) Docs(docs interface{}) *Insert {
 
 // Doc sets the document to be inserted into the database
 func (i *Insert) Doc(doc interface{}) *Insert {
-	i.op = utils.All
+	i.op = utils.One
 	i.obj = doc
 	return i
 }
