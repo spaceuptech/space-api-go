@@ -6,10 +6,9 @@ package proto
 import (
 	context "context"
 	fmt "fmt"
-	math "math"
-
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -21,7 +20,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-// const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type CreateRequest struct {
 	Document             []byte   `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
@@ -629,10 +628,10 @@ func (m *BatchRequest) GetMeta() *Meta {
 	return nil
 }
 
-type FaaSRequest struct {
+type FunctionsRequest struct {
 	Params               []byte   `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
 	Timeout              int64    `protobuf:"varint,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	Engine               string   `protobuf:"bytes,3,opt,name=engine,proto3" json:"engine,omitempty"`
+	Service              string   `protobuf:"bytes,3,opt,name=service,proto3" json:"service,omitempty"`
 	Function             string   `protobuf:"bytes,4,opt,name=function,proto3" json:"function,omitempty"`
 	Token                string   `protobuf:"bytes,5,opt,name=token,proto3" json:"token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -640,64 +639,592 @@ type FaaSRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *FaaSRequest) Reset()         { *m = FaaSRequest{} }
-func (m *FaaSRequest) String() string { return proto.CompactTextString(m) }
-func (*FaaSRequest) ProtoMessage()    {}
-func (*FaaSRequest) Descriptor() ([]byte, []int) {
+func (m *FunctionsRequest) Reset()         { *m = FunctionsRequest{} }
+func (m *FunctionsRequest) String() string { return proto.CompactTextString(m) }
+func (*FunctionsRequest) ProtoMessage()    {}
+func (*FunctionsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ad098daeda4239f7, []int{10}
 }
 
-func (m *FaaSRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_FaaSRequest.Unmarshal(m, b)
+func (m *FunctionsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FunctionsRequest.Unmarshal(m, b)
 }
-func (m *FaaSRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_FaaSRequest.Marshal(b, m, deterministic)
+func (m *FunctionsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FunctionsRequest.Marshal(b, m, deterministic)
 }
-func (m *FaaSRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_FaaSRequest.Merge(m, src)
+func (m *FunctionsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FunctionsRequest.Merge(m, src)
 }
-func (m *FaaSRequest) XXX_Size() int {
-	return xxx_messageInfo_FaaSRequest.Size(m)
+func (m *FunctionsRequest) XXX_Size() int {
+	return xxx_messageInfo_FunctionsRequest.Size(m)
 }
-func (m *FaaSRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_FaaSRequest.DiscardUnknown(m)
+func (m *FunctionsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_FunctionsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_FaaSRequest proto.InternalMessageInfo
+var xxx_messageInfo_FunctionsRequest proto.InternalMessageInfo
 
-func (m *FaaSRequest) GetParams() []byte {
+func (m *FunctionsRequest) GetParams() []byte {
 	if m != nil {
 		return m.Params
 	}
 	return nil
 }
 
-func (m *FaaSRequest) GetTimeout() int64 {
+func (m *FunctionsRequest) GetTimeout() int64 {
 	if m != nil {
 		return m.Timeout
 	}
 	return 0
 }
 
-func (m *FaaSRequest) GetEngine() string {
+func (m *FunctionsRequest) GetService() string {
 	if m != nil {
-		return m.Engine
+		return m.Service
 	}
 	return ""
 }
 
-func (m *FaaSRequest) GetFunction() string {
+func (m *FunctionsRequest) GetFunction() string {
 	if m != nil {
 		return m.Function
 	}
 	return ""
 }
 
-func (m *FaaSRequest) GetToken() string {
+func (m *FunctionsRequest) GetToken() string {
 	if m != nil {
 		return m.Token
 	}
 	return ""
+}
+
+type FeedData struct {
+	QueryId              string   `protobuf:"bytes,1,opt,name=queryId,proto3" json:"queryId,omitempty"`
+	DocId                string   `protobuf:"bytes,2,opt,name=docId,proto3" json:"docId,omitempty"`
+	Type                 string   `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	Group                string   `protobuf:"bytes,4,opt,name=group,proto3" json:"group,omitempty"`
+	DbType               string   `protobuf:"bytes,5,opt,name=dbType,proto3" json:"dbType,omitempty"`
+	Payload              []byte   `protobuf:"bytes,6,opt,name=payload,proto3" json:"payload,omitempty"`
+	TimeStamp            int64    `protobuf:"varint,7,opt,name=timeStamp,proto3" json:"timeStamp,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *FeedData) Reset()         { *m = FeedData{} }
+func (m *FeedData) String() string { return proto.CompactTextString(m) }
+func (*FeedData) ProtoMessage()    {}
+func (*FeedData) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{11}
+}
+
+func (m *FeedData) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FeedData.Unmarshal(m, b)
+}
+func (m *FeedData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FeedData.Marshal(b, m, deterministic)
+}
+func (m *FeedData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FeedData.Merge(m, src)
+}
+func (m *FeedData) XXX_Size() int {
+	return xxx_messageInfo_FeedData.Size(m)
+}
+func (m *FeedData) XXX_DiscardUnknown() {
+	xxx_messageInfo_FeedData.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FeedData proto.InternalMessageInfo
+
+func (m *FeedData) GetQueryId() string {
+	if m != nil {
+		return m.QueryId
+	}
+	return ""
+}
+
+func (m *FeedData) GetDocId() string {
+	if m != nil {
+		return m.DocId
+	}
+	return ""
+}
+
+func (m *FeedData) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *FeedData) GetGroup() string {
+	if m != nil {
+		return m.Group
+	}
+	return ""
+}
+
+func (m *FeedData) GetDbType() string {
+	if m != nil {
+		return m.DbType
+	}
+	return ""
+}
+
+func (m *FeedData) GetPayload() []byte {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *FeedData) GetTimeStamp() int64 {
+	if m != nil {
+		return m.TimeStamp
+	}
+	return 0
+}
+
+type RealTimeRequest struct {
+	Token                string   `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	DbType               string   `protobuf:"bytes,2,opt,name=dbType,proto3" json:"dbType,omitempty"`
+	Project              string   `protobuf:"bytes,3,opt,name=project,proto3" json:"project,omitempty"`
+	Group                string   `protobuf:"bytes,4,opt,name=group,proto3" json:"group,omitempty"`
+	Type                 string   `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	Id                   string   `protobuf:"bytes,6,opt,name=id,proto3" json:"id,omitempty"`
+	Where                []byte   `protobuf:"bytes,7,opt,name=where,proto3" json:"where,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RealTimeRequest) Reset()         { *m = RealTimeRequest{} }
+func (m *RealTimeRequest) String() string { return proto.CompactTextString(m) }
+func (*RealTimeRequest) ProtoMessage()    {}
+func (*RealTimeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{12}
+}
+
+func (m *RealTimeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RealTimeRequest.Unmarshal(m, b)
+}
+func (m *RealTimeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RealTimeRequest.Marshal(b, m, deterministic)
+}
+func (m *RealTimeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RealTimeRequest.Merge(m, src)
+}
+func (m *RealTimeRequest) XXX_Size() int {
+	return xxx_messageInfo_RealTimeRequest.Size(m)
+}
+func (m *RealTimeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RealTimeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RealTimeRequest proto.InternalMessageInfo
+
+func (m *RealTimeRequest) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *RealTimeRequest) GetDbType() string {
+	if m != nil {
+		return m.DbType
+	}
+	return ""
+}
+
+func (m *RealTimeRequest) GetProject() string {
+	if m != nil {
+		return m.Project
+	}
+	return ""
+}
+
+func (m *RealTimeRequest) GetGroup() string {
+	if m != nil {
+		return m.Group
+	}
+	return ""
+}
+
+func (m *RealTimeRequest) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *RealTimeRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *RealTimeRequest) GetWhere() []byte {
+	if m != nil {
+		return m.Where
+	}
+	return nil
+}
+
+type RealTimeResponse struct {
+	Group                string      `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	Id                   string      `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Ack                  bool        `protobuf:"varint,3,opt,name=ack,proto3" json:"ack,omitempty"`
+	Error                string      `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	FeedData             []*FeedData `protobuf:"bytes,5,rep,name=feedData,proto3" json:"feedData,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *RealTimeResponse) Reset()         { *m = RealTimeResponse{} }
+func (m *RealTimeResponse) String() string { return proto.CompactTextString(m) }
+func (*RealTimeResponse) ProtoMessage()    {}
+func (*RealTimeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{13}
+}
+
+func (m *RealTimeResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RealTimeResponse.Unmarshal(m, b)
+}
+func (m *RealTimeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RealTimeResponse.Marshal(b, m, deterministic)
+}
+func (m *RealTimeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RealTimeResponse.Merge(m, src)
+}
+func (m *RealTimeResponse) XXX_Size() int {
+	return xxx_messageInfo_RealTimeResponse.Size(m)
+}
+func (m *RealTimeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RealTimeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RealTimeResponse proto.InternalMessageInfo
+
+func (m *RealTimeResponse) GetGroup() string {
+	if m != nil {
+		return m.Group
+	}
+	return ""
+}
+
+func (m *RealTimeResponse) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *RealTimeResponse) GetAck() bool {
+	if m != nil {
+		return m.Ack
+	}
+	return false
+}
+
+func (m *RealTimeResponse) GetError() string {
+	if m != nil {
+		return m.Error
+	}
+	return ""
+}
+
+func (m *RealTimeResponse) GetFeedData() []*FeedData {
+	if m != nil {
+		return m.FeedData
+	}
+	return nil
+}
+
+type ProfileRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Meta                 *Meta    `protobuf:"bytes,2,opt,name=meta,proto3" json:"meta,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ProfileRequest) Reset()         { *m = ProfileRequest{} }
+func (m *ProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*ProfileRequest) ProtoMessage()    {}
+func (*ProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{14}
+}
+
+func (m *ProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ProfileRequest.Unmarshal(m, b)
+}
+func (m *ProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ProfileRequest.Marshal(b, m, deterministic)
+}
+func (m *ProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProfileRequest.Merge(m, src)
+}
+func (m *ProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_ProfileRequest.Size(m)
+}
+func (m *ProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ProfileRequest proto.InternalMessageInfo
+
+func (m *ProfileRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *ProfileRequest) GetMeta() *Meta {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+type ProfilesRequest struct {
+	Meta                 *Meta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ProfilesRequest) Reset()         { *m = ProfilesRequest{} }
+func (m *ProfilesRequest) String() string { return proto.CompactTextString(m) }
+func (*ProfilesRequest) ProtoMessage()    {}
+func (*ProfilesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{15}
+}
+
+func (m *ProfilesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ProfilesRequest.Unmarshal(m, b)
+}
+func (m *ProfilesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ProfilesRequest.Marshal(b, m, deterministic)
+}
+func (m *ProfilesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProfilesRequest.Merge(m, src)
+}
+func (m *ProfilesRequest) XXX_Size() int {
+	return xxx_messageInfo_ProfilesRequest.Size(m)
+}
+func (m *ProfilesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProfilesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ProfilesRequest proto.InternalMessageInfo
+
+func (m *ProfilesRequest) GetMeta() *Meta {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+type EditProfileRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email                string   `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Password             string   `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	Meta                 *Meta    `protobuf:"bytes,5,opt,name=meta,proto3" json:"meta,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EditProfileRequest) Reset()         { *m = EditProfileRequest{} }
+func (m *EditProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*EditProfileRequest) ProtoMessage()    {}
+func (*EditProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{16}
+}
+
+func (m *EditProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EditProfileRequest.Unmarshal(m, b)
+}
+func (m *EditProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EditProfileRequest.Marshal(b, m, deterministic)
+}
+func (m *EditProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EditProfileRequest.Merge(m, src)
+}
+func (m *EditProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_EditProfileRequest.Size(m)
+}
+func (m *EditProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EditProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EditProfileRequest proto.InternalMessageInfo
+
+func (m *EditProfileRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *EditProfileRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *EditProfileRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *EditProfileRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+func (m *EditProfileRequest) GetMeta() *Meta {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+type SignInRequest struct {
+	Email                string   `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password             string   `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Meta                 *Meta    `protobuf:"bytes,3,opt,name=meta,proto3" json:"meta,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SignInRequest) Reset()         { *m = SignInRequest{} }
+func (m *SignInRequest) String() string { return proto.CompactTextString(m) }
+func (*SignInRequest) ProtoMessage()    {}
+func (*SignInRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{17}
+}
+
+func (m *SignInRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SignInRequest.Unmarshal(m, b)
+}
+func (m *SignInRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SignInRequest.Marshal(b, m, deterministic)
+}
+func (m *SignInRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignInRequest.Merge(m, src)
+}
+func (m *SignInRequest) XXX_Size() int {
+	return xxx_messageInfo_SignInRequest.Size(m)
+}
+func (m *SignInRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignInRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SignInRequest proto.InternalMessageInfo
+
+func (m *SignInRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *SignInRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+func (m *SignInRequest) GetMeta() *Meta {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+type SignUpRequest struct {
+	Email                string   `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Password             string   `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	Role                 string   `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	Meta                 *Meta    `protobuf:"bytes,5,opt,name=meta,proto3" json:"meta,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SignUpRequest) Reset()         { *m = SignUpRequest{} }
+func (m *SignUpRequest) String() string { return proto.CompactTextString(m) }
+func (*SignUpRequest) ProtoMessage()    {}
+func (*SignUpRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ad098daeda4239f7, []int{18}
+}
+
+func (m *SignUpRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SignUpRequest.Unmarshal(m, b)
+}
+func (m *SignUpRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SignUpRequest.Marshal(b, m, deterministic)
+}
+func (m *SignUpRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignUpRequest.Merge(m, src)
+}
+func (m *SignUpRequest) XXX_Size() int {
+	return xxx_messageInfo_SignUpRequest.Size(m)
+}
+func (m *SignUpRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignUpRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SignUpRequest proto.InternalMessageInfo
+
+func (m *SignUpRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *SignUpRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *SignUpRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+func (m *SignUpRequest) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+func (m *SignUpRequest) GetMeta() *Meta {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
 }
 
 func init() {
@@ -713,58 +1240,90 @@ func init() {
 	proto.RegisterType((*Meta)(nil), "proto.Meta")
 	proto.RegisterType((*AllRequest)(nil), "proto.AllRequest")
 	proto.RegisterType((*BatchRequest)(nil), "proto.BatchRequest")
-	proto.RegisterType((*FaaSRequest)(nil), "proto.FaaSRequest")
+	proto.RegisterType((*FunctionsRequest)(nil), "proto.FunctionsRequest")
+	proto.RegisterType((*FeedData)(nil), "proto.FeedData")
+	proto.RegisterType((*RealTimeRequest)(nil), "proto.RealTimeRequest")
+	proto.RegisterType((*RealTimeResponse)(nil), "proto.RealTimeResponse")
+	proto.RegisterType((*ProfileRequest)(nil), "proto.ProfileRequest")
+	proto.RegisterType((*ProfilesRequest)(nil), "proto.ProfilesRequest")
+	proto.RegisterType((*EditProfileRequest)(nil), "proto.EditProfileRequest")
+	proto.RegisterType((*SignInRequest)(nil), "proto.SignInRequest")
+	proto.RegisterType((*SignUpRequest)(nil), "proto.SignUpRequest")
 }
 
 func init() { proto.RegisterFile("server.proto", fileDescriptor_ad098daeda4239f7) }
 
 var fileDescriptor_ad098daeda4239f7 = []byte{
-	// 718 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0xcd, 0x52, 0x13, 0x41,
-	0x10, 0x76, 0x93, 0xdd, 0x40, 0x3a, 0xa1, 0xc0, 0x91, 0xc2, 0x54, 0x8a, 0x12, 0x2a, 0xa7, 0x1c,
-	0x34, 0x0a, 0xfe, 0xa0, 0xde, 0x00, 0xf5, 0x66, 0x49, 0x0d, 0x7a, 0xd6, 0xc9, 0xa6, 0x09, 0x0b,
-	0x9b, 0x9d, 0x71, 0x66, 0x96, 0x2a, 0x7c, 0x03, 0x2f, 0x9e, 0x7d, 0x0d, 0x1f, 0xcc, 0x77, 0xb0,
-	0xe6, 0x67, 0x37, 0x1b, 0x4c, 0xa0, 0x28, 0x4e, 0x99, 0x2f, 0xdb, 0x5f, 0xff, 0x7d, 0xdd, 0x0d,
-	0x6d, 0x85, 0xf2, 0x02, 0xe5, 0x40, 0x48, 0xae, 0x39, 0x89, 0xec, 0x4f, 0xef, 0x0c, 0x56, 0x0e,
-	0x25, 0x32, 0x8d, 0x14, 0xbf, 0xe7, 0xa8, 0x34, 0xe9, 0xc2, 0xf2, 0x88, 0xc7, 0xf9, 0x04, 0x33,
-	0xdd, 0x09, 0xb6, 0x83, 0x7e, 0x9b, 0x96, 0x98, 0x6c, 0x42, 0x93, 0x0b, 0x94, 0x4c, 0x27, 0x3c,
-	0xeb, 0xd4, 0xb6, 0x83, 0x7e, 0x93, 0x4e, 0xff, 0x20, 0x5b, 0x10, 0x4e, 0x50, 0xb3, 0x4e, 0x7d,
-	0x3b, 0xe8, 0xb7, 0x76, 0x5b, 0x2e, 0xce, 0xe0, 0x23, 0x6a, 0x46, 0xed, 0x87, 0xde, 0xaf, 0x00,
-	0x5a, 0x14, 0xd9, 0xa8, 0x08, 0x45, 0x20, 0x3c, 0x49, 0xb2, 0x91, 0x0f, 0x63, 0xdf, 0x37, 0x84,
-	0x78, 0x0c, 0x4b, 0x5c, 0x98, 0x97, 0xf2, 0x51, 0x88, 0x8f, 0x62, 0xdc, 0x7e, 0x72, 0x5f, 0x68,
-	0x61, 0x52, 0x26, 0x14, 0x2e, 0x4a, 0xe8, 0x4f, 0xcd, 0x25, 0xe4, 0x99, 0xe4, 0x15, 0x34, 0x14,
-	0xa6, 0x18, 0x9b, 0xca, 0xeb, 0xfd, 0xd6, 0xee, 0xa3, 0xff, 0xbd, 0x0f, 0x8e, 0xad, 0xc1, 0xfb,
-	0x4c, 0xcb, 0x4b, 0xea, 0xad, 0xc9, 0x33, 0x08, 0x15, 0x97, 0xba, 0x53, 0xb3, 0xac, 0xcd, 0x79,
-	0x2c, 0x2e, 0x3d, 0xc7, 0x5a, 0x9a, 0xd2, 0xd5, 0x79, 0x22, 0x6c, 0x15, 0x75, 0x6a, 0xdf, 0x64,
-	0x1d, 0xa2, 0x34, 0x99, 0x24, 0xda, 0xe6, 0x5b, 0xa7, 0x0e, 0x58, 0x3d, 0x12, 0xa5, 0x93, 0x2c,
-	0xd6, 0x9d, 0xc8, 0xf6, 0xa3, 0xc4, 0xdd, 0x37, 0xd0, 0xaa, 0xa4, 0x43, 0xd6, 0xa0, 0x7e, 0x8e,
-	0x97, 0xb6, 0x9d, 0x4d, 0x6a, 0x9e, 0xc6, 0xe5, 0x05, 0x4b, 0x73, 0xb4, 0x9d, 0x8c, 0xa8, 0x03,
-	0x6f, 0x6b, 0xaf, 0x83, 0xee, 0x1e, 0x34, 0xcb, 0x9c, 0x6e, 0x43, 0xec, 0xfd, 0x80, 0x95, 0x2f,
-	0x62, 0x54, 0x19, 0x98, 0xdb, 0xab, 0xb8, 0x01, 0x8d, 0xdc, 0xba, 0xb0, 0xe5, 0xb7, 0xa9, 0x47,
-	0x37, 0xeb, 0x35, 0x84, 0x95, 0x77, 0x98, 0xe2, 0x5d, 0x62, 0xdf, 0x38, 0xa4, 0x13, 0x58, 0xdb,
-	0x1f, 0x8f, 0x25, 0x8e, 0x67, 0x77, 0x42, 0x24, 0x02, 0xd3, 0x24, 0xc3, 0x62, 0x27, 0x0a, 0x7c,
-	0xd7, 0x70, 0x47, 0xb0, 0x4c, 0x51, 0x09, 0x9e, 0x29, 0x34, 0x7d, 0x51, 0x9a, 0xe9, 0x5c, 0xd9,
-	0x20, 0x11, 0xf5, 0xc8, 0x88, 0x81, 0x52, 0x72, 0xe9, 0xdd, 0x3b, 0x60, 0xac, 0x25, 0xaa, 0x3c,
-	0xd5, 0x45, 0x17, 0x1d, 0xea, 0x7d, 0x83, 0xd0, 0xf8, 0x27, 0x1d, 0x58, 0x12, 0x92, 0x9f, 0xb9,
-	0x69, 0x36, 0xbc, 0x02, 0x1a, 0xe6, 0x68, 0xf8, 0xf9, 0x52, 0xa0, 0x77, 0xe8, 0x91, 0x19, 0x83,
-	0x98, 0xa7, 0xd6, 0x5d, 0x93, 0x9a, 0xa7, 0x89, 0xac, 0xf9, 0x39, 0x66, 0x56, 0x92, 0x26, 0x75,
-	0xa0, 0xf7, 0x3b, 0x00, 0xd8, 0x4f, 0xd3, 0xa2, 0x3b, 0x9e, 0x16, 0x4c, 0x69, 0xd5, 0x1b, 0x52,
-	0xbb, 0xee, 0x86, 0xd4, 0xaf, 0xf6, 0xab, 0x10, 0x34, 0xac, 0x08, 0x3a, 0x1d, 0x97, 0x68, 0x66,
-	0x5c, 0x08, 0x84, 0xda, 0x14, 0xd1, 0xb0, 0x4e, 0xec, 0xbb, 0x77, 0x02, 0xed, 0x03, 0xa6, 0xe3,
-	0xd3, 0x22, 0xb7, 0x97, 0xd0, 0x1e, 0x1a, 0x2c, 0x1d, 0xf6, 0x7b, 0x7d, 0xdf, 0xeb, 0x30, 0x2d,
-	0x82, 0xce, 0x98, 0x95, 0xb2, 0xd5, 0x16, 0xc9, 0xf6, 0x33, 0x80, 0xd6, 0x07, 0xc6, 0x8e, 0x8b,
-	0x38, 0x1b, 0xd0, 0x10, 0x4c, 0xb2, 0x89, 0xf2, 0xf3, 0xe1, 0x91, 0x11, 0x41, 0x27, 0x13, 0xe4,
-	0xb9, 0x6b, 0x44, 0x9d, 0x16, 0xd0, 0x30, 0x30, 0x1b, 0x9b, 0x89, 0x72, 0x4d, 0xf0, 0xc8, 0xf4,
-	0xee, 0x24, 0xcf, 0x62, 0xdb, 0x1e, 0xd7, 0xf5, 0x12, 0x4f, 0xe5, 0x88, 0x2a, 0x72, 0xec, 0xfe,
-	0xad, 0x01, 0x1c, 0x0b, 0x16, 0xe3, 0x61, 0xca, 0xf3, 0x11, 0xd9, 0x81, 0x86, 0xbb, 0xe8, 0x64,
-	0xdd, 0xe7, 0x3d, 0x73, 0xe0, 0xbb, 0xab, 0xe5, 0x79, 0x72, 0x63, 0xd7, 0xbb, 0x47, 0x9e, 0x40,
-	0x68, 0x8e, 0x15, 0xa9, 0x5e, 0xd3, 0x6b, 0xcc, 0x77, 0xa0, 0xe1, 0x4e, 0x40, 0x19, 0x61, 0xe6,
-	0x22, 0x2c, 0xa0, 0xb8, 0xcd, 0x2d, 0x29, 0x33, 0x8b, 0x3c, 0x8f, 0xb2, 0x07, 0xcd, 0x72, 0x11,
-	0xc9, 0xc3, 0x42, 0xb1, 0x2b, 0xab, 0x39, 0x8f, 0xf8, 0x14, 0x22, 0x3b, 0x03, 0xe4, 0x81, 0xff,
-	0x56, 0x9d, 0x88, 0x05, 0xe5, 0x1f, 0xb2, 0x34, 0x2d, 0xcb, 0xaf, 0x08, 0x3b, 0xc7, 0xfc, 0xe0,
-	0x05, 0x6c, 0xc5, 0x7c, 0x32, 0x50, 0xa6, 0xe5, 0xb9, 0xd0, 0x18, 0x9f, 0xba, 0xf7, 0x57, 0x26,
-	0x12, 0x67, 0x7d, 0xb0, 0x3a, 0xd5, 0xe3, 0xc8, 0xfc, 0x71, 0x14, 0x0c, 0x1b, 0xf6, 0xcb, 0xf3,
-	0x7f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x83, 0xb1, 0x3c, 0x70, 0x86, 0x07, 0x00, 0x00,
+	// 1099 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xcd, 0x6e, 0x1c, 0x45,
+	0x10, 0xa6, 0xe7, 0x67, 0xbd, 0x5b, 0xbb, 0x8e, 0x4d, 0x13, 0x9c, 0xc5, 0x8a, 0x88, 0xb5, 0x27,
+	0x4b, 0x80, 0x49, 0x1c, 0x42, 0xf8, 0x39, 0xd9, 0x4e, 0x22, 0xf9, 0x80, 0xb0, 0xda, 0xf1, 0x19,
+	0xda, 0x33, 0x6d, 0x7b, 0xe2, 0x99, 0xe9, 0x49, 0x4f, 0x4f, 0x22, 0xf3, 0x08, 0x20, 0x10, 0x47,
+	0x5e, 0x81, 0x23, 0x12, 0x8f, 0xc0, 0x83, 0xa1, 0xfe, 0x9d, 0x19, 0x7b, 0xd7, 0xab, 0x28, 0xa7,
+	0xed, 0x6f, 0xa7, 0xaa, 0xbe, 0xae, 0xaa, 0xaf, 0xba, 0x1b, 0x26, 0x35, 0x13, 0x6f, 0x98, 0xd8,
+	0xa9, 0x04, 0x97, 0x1c, 0xc7, 0xfa, 0x67, 0xf6, 0x0a, 0x56, 0x0f, 0x04, 0xa3, 0x92, 0x11, 0xf6,
+	0xba, 0x61, 0xb5, 0xc4, 0x9b, 0x30, 0x4c, 0x79, 0xd2, 0x14, 0xac, 0x94, 0x53, 0xb4, 0x85, 0xb6,
+	0x27, 0xc4, 0x63, 0x7c, 0x1f, 0x46, 0xbc, 0x62, 0x82, 0xca, 0x8c, 0x97, 0xd3, 0x60, 0x0b, 0x6d,
+	0x8f, 0x48, 0xfb, 0x07, 0x7e, 0x00, 0x51, 0xc1, 0x24, 0x9d, 0x86, 0x5b, 0x68, 0x7b, 0xbc, 0x3b,
+	0x36, 0x3c, 0x3b, 0x3f, 0x30, 0x49, 0x89, 0xfe, 0x30, 0xfb, 0x03, 0xc1, 0x98, 0x30, 0x9a, 0x3a,
+	0x2a, 0x0c, 0xd1, 0x59, 0x56, 0xa6, 0x96, 0x46, 0xaf, 0x97, 0x50, 0x7c, 0x0e, 0x2b, 0xbc, 0x52,
+	0xab, 0xda, 0xb2, 0x60, 0xcb, 0xa2, 0xc2, 0xfe, 0x68, 0xbe, 0x10, 0x67, 0xe2, 0x37, 0x14, 0x2d,
+	0xda, 0xd0, 0x3f, 0x81, 0xd9, 0x90, 0xf5, 0xc4, 0x5f, 0xc3, 0xa0, 0x66, 0x39, 0x4b, 0x54, 0xe6,
+	0xe1, 0xf6, 0x78, 0xf7, 0xd3, 0x9b, 0xd1, 0x77, 0x8e, 0xb5, 0xc1, 0xf3, 0x52, 0x8a, 0x2b, 0x62,
+	0xad, 0xf1, 0x43, 0x88, 0x6a, 0x2e, 0xe4, 0x34, 0xd0, 0x5e, 0xf7, 0xe7, 0x79, 0x71, 0x61, 0x7d,
+	0xb4, 0xa5, 0x4a, 0xbd, 0xbe, 0xcc, 0x2a, 0x9d, 0x45, 0x48, 0xf4, 0x1a, 0xdf, 0x85, 0x38, 0xcf,
+	0x8a, 0x4c, 0xea, 0xfd, 0x86, 0xc4, 0x00, 0xdd, 0x8f, 0xac, 0x96, 0x59, 0x99, 0xc8, 0x69, 0xac,
+	0xeb, 0xe1, 0xf1, 0xe6, 0xb7, 0x30, 0xee, 0x6c, 0x07, 0xaf, 0x43, 0x78, 0xc9, 0xae, 0x74, 0x39,
+	0x47, 0x44, 0x2d, 0x55, 0xc8, 0x37, 0x34, 0x6f, 0x98, 0xae, 0x64, 0x4c, 0x0c, 0xf8, 0x2e, 0xf8,
+	0x06, 0x6d, 0x3e, 0x85, 0x91, 0xdf, 0xd3, 0xbb, 0x38, 0xce, 0x7e, 0x81, 0xd5, 0x93, 0x2a, 0xed,
+	0x08, 0xe6, 0xdd, 0xbb, 0xb8, 0x01, 0x83, 0x46, 0x87, 0xd0, 0xe9, 0x4f, 0x88, 0x45, 0xcb, 0xfb,
+	0x75, 0x0a, 0xab, 0xcf, 0x58, 0xce, 0xde, 0x87, 0x7b, 0xa9, 0x48, 0x0b, 0x58, 0xdf, 0x3b, 0x3f,
+	0x17, 0xec, 0xbc, 0x3f, 0x13, 0x55, 0x56, 0xb1, 0x3c, 0x2b, 0x99, 0x9b, 0x09, 0x87, 0xdf, 0x97,
+	0xee, 0x08, 0x86, 0x84, 0xd5, 0x15, 0x2f, 0x6b, 0xa6, 0xea, 0x52, 0x4b, 0x2a, 0x9b, 0x5a, 0x93,
+	0xc4, 0xc4, 0x22, 0xd5, 0x0c, 0x26, 0x04, 0x17, 0x36, 0xbc, 0x01, 0xca, 0x5a, 0xb0, 0xba, 0xc9,
+	0xa5, 0xab, 0xa2, 0x41, 0xb3, 0x9f, 0x21, 0x52, 0xf1, 0xf1, 0x14, 0x56, 0x2a, 0xc1, 0x5f, 0x19,
+	0x35, 0x2b, 0x3f, 0x07, 0x95, 0x67, 0x7a, 0xfa, 0xf2, 0xaa, 0x62, 0x36, 0xa0, 0x45, 0x4a, 0x06,
+	0x09, 0xcf, 0x75, 0xb8, 0x11, 0x51, 0x4b, 0xc5, 0x2c, 0xf9, 0x25, 0x2b, 0x75, 0x4b, 0x46, 0xc4,
+	0x80, 0xd9, 0x5f, 0x08, 0x60, 0x2f, 0xcf, 0x5d, 0x75, 0xac, 0x1b, 0x6a, 0xdd, 0xba, 0x67, 0x48,
+	0x70, 0xdb, 0x19, 0x12, 0x5e, 0xaf, 0x97, 0x6b, 0x68, 0xd4, 0x69, 0x68, 0x2b, 0x97, 0xb8, 0x27,
+	0x17, 0x0c, 0x91, 0x54, 0x49, 0x0c, 0x74, 0x10, 0xbd, 0x9e, 0x9d, 0xc1, 0x64, 0x9f, 0xca, 0xe4,
+	0xc2, 0xed, 0xed, 0x09, 0x4c, 0x4e, 0x15, 0x16, 0x06, 0xdb, 0xb9, 0xfe, 0xd0, 0xf6, 0xa1, 0x4d,
+	0x82, 0xf4, 0xcc, 0x7c, 0xdb, 0x82, 0x45, 0x6d, 0xfb, 0x13, 0xc1, 0xfa, 0x8b, 0xa6, 0x4c, 0xcc,
+	0x89, 0x63, 0xbd, 0x36, 0x60, 0x50, 0x51, 0x41, 0x8b, 0xda, 0x8a, 0xc4, 0x22, 0xd5, 0x09, 0x99,
+	0x15, 0x8c, 0x37, 0xa6, 0x1a, 0x21, 0x71, 0x50, 0x7d, 0x51, 0x87, 0x72, 0x96, 0x30, 0x5b, 0x0a,
+	0x07, 0x55, 0x09, 0xcf, 0x6c, 0x7c, 0x5b, 0x7c, 0x8f, 0xdb, 0xae, 0xc4, 0xdd, 0xae, 0xfc, 0x8b,
+	0x60, 0xf8, 0x82, 0xb1, 0xf4, 0x19, 0x35, 0xcd, 0x7f, 0xdd, 0x30, 0x71, 0x75, 0x98, 0xba, 0xe6,
+	0x5b, 0xa8, 0x9c, 0x53, 0x9e, 0x1c, 0xa6, 0x4e, 0x4c, 0x1a, 0xf8, 0x5a, 0x86, 0x6d, 0x2d, 0x95,
+	0xe5, 0xb9, 0xe0, 0x4d, 0xe5, 0x9a, 0xaf, 0x41, 0x47, 0x3c, 0x71, 0x4f, 0x3c, 0x4a, 0x6e, 0xf4,
+	0x2a, 0xe7, 0x34, 0xd5, 0x0d, 0x99, 0x10, 0x07, 0x55, 0xc7, 0x55, 0xbe, 0xc7, 0x92, 0x16, 0xd5,
+	0x74, 0x45, 0x17, 0xa0, 0xfd, 0x63, 0xf6, 0x37, 0x82, 0x35, 0xc2, 0x68, 0xfe, 0x32, 0x2b, 0xfc,
+	0xbc, 0xf9, 0x04, 0x51, 0x27, 0xc1, 0x85, 0xb2, 0xed, 0x08, 0x3d, 0xec, 0x0b, 0x7d, 0x7e, 0x06,
+	0x2e, 0xd7, 0xb8, 0x93, 0xeb, 0x1d, 0x08, 0xb2, 0xd4, 0x2a, 0x29, 0xc8, 0x74, 0x95, 0xde, 0x5e,
+	0x30, 0xc1, 0xf4, 0x7e, 0x27, 0xc4, 0x80, 0xd9, 0xef, 0x08, 0xd6, 0xdb, 0xbd, 0xda, 0xa9, 0xf5,
+	0x24, 0xa8, 0x4b, 0x62, 0x02, 0x06, 0x3e, 0xe0, 0x3a, 0x84, 0x34, 0xb9, 0xd4, 0x1b, 0x1c, 0x12,
+	0xb5, 0x6c, 0xa7, 0x3a, 0xea, 0x4e, 0xf5, 0x67, 0x30, 0x3c, 0xb3, 0x4d, 0x9c, 0xc6, 0x5a, 0xac,
+	0x6b, 0x56, 0x7d, 0xae, 0xb7, 0xc4, 0x1b, 0xcc, 0xf6, 0xe0, 0xce, 0x91, 0xe0, 0x67, 0x59, 0xee,
+	0x2b, 0x67, 0x68, 0x91, 0xa7, 0x5d, 0x2a, 0xe4, 0x5d, 0x58, 0xb3, 0x21, 0xbc, 0x8c, 0x9d, 0x0f,
+	0x5a, 0xe4, 0xf3, 0x1b, 0x02, 0xfc, 0x3c, 0xcd, 0xe4, 0x12, 0x6e, 0x95, 0x60, 0x41, 0xb3, 0xdc,
+	0x1f, 0x5b, 0x0a, 0xa8, 0xea, 0x97, 0xb4, 0xf0, 0x4a, 0x53, 0x6b, 0x7d, 0xbe, 0xd2, 0xba, 0x7e,
+	0xcb, 0x45, 0xea, 0xc4, 0xee, 0xb0, 0xdf, 0x4d, 0x7c, 0xcb, 0xa5, 0x70, 0x9c, 0x9d, 0x97, 0x87,
+	0x65, 0x47, 0x3d, 0x86, 0x17, 0x75, 0x79, 0xbb, 0x1c, 0xc1, 0x02, 0x8e, 0x85, 0xa7, 0xf4, 0xaf,
+	0xc8, 0x90, 0x9c, 0x54, 0xb7, 0x93, 0xb8, 0xe4, 0x82, 0x05, 0xc9, 0x85, 0xd7, 0x88, 0x31, 0x44,
+	0x82, 0xe7, 0xcc, 0x26, 0xad, 0xd7, 0x4b, 0x13, 0xde, 0xfd, 0x2f, 0x06, 0x38, 0xae, 0x68, 0xc2,
+	0x0e, 0x72, 0xde, 0xa4, 0xf8, 0x11, 0x0c, 0xcc, 0x0b, 0x0e, 0xdf, 0xb5, 0xb6, 0xbd, 0x07, 0xdd,
+	0xe6, 0x9a, 0x7f, 0x8e, 0x18, 0xc1, 0xce, 0x3e, 0xc0, 0x5f, 0x40, 0xa4, 0x1e, 0x27, 0xb8, 0xfb,
+	0x7a, 0xba, 0xc5, 0xfc, 0x11, 0x0c, 0xcc, 0x95, 0xef, 0x19, 0x7a, 0x2f, 0x80, 0x05, 0x2e, 0xe6,
+	0xa6, 0xf6, 0x2e, 0xbd, 0x8b, 0x7b, 0x9e, 0xcb, 0x53, 0x18, 0xf9, 0x8b, 0x17, 0xdf, 0x73, 0x27,
+	0xf4, 0xb5, 0xab, 0x78, 0x9e, 0xe3, 0x97, 0x10, 0xeb, 0x33, 0x1f, 0x7f, 0x64, 0xbf, 0x75, 0x6f,
+	0x80, 0x79, 0x0e, 0xbb, 0x10, 0x1d, 0xd0, 0x3c, 0xf7, 0x24, 0xd7, 0x0f, 0xf2, 0x79, 0x3e, 0x7b,
+	0xea, 0x9e, 0x36, 0x93, 0x8f, 0x37, 0xda, 0xb2, 0x75, 0x8f, 0xad, 0xcd, 0x7b, 0x37, 0xfe, 0x77,
+	0xee, 0xdb, 0xe8, 0x21, 0xc2, 0x8f, 0x61, 0xc5, 0x4e, 0x0c, 0xfe, 0xd8, 0x5a, 0xf6, 0x27, 0x68,
+	0x1e, 0xef, 0x13, 0x18, 0xba, 0xf9, 0xf4, 0xbc, 0xd7, 0x06, 0x76, 0x9e, 0xdb, 0xf7, 0x30, 0xee,
+	0x4c, 0x28, 0xfe, 0xc4, 0x5a, 0xdc, 0x9c, 0xda, 0x05, 0xcd, 0x33, 0x13, 0xe5, 0x9b, 0xd7, 0x1b,
+	0xb0, 0x5b, 0x5c, 0x4e, 0xaa, 0x9e, 0x8b, 0x1f, 0x97, 0x39, 0x2e, 0xfb, 0x5f, 0xc1, 0x83, 0x84,
+	0x17, 0x3b, 0xb5, 0x52, 0x72, 0x53, 0x49, 0x96, 0x5c, 0x98, 0xf5, 0x4f, 0xb4, 0xca, 0x8c, 0xf5,
+	0xfe, 0x5a, 0x2b, 0xf3, 0x23, 0xf5, 0xc7, 0x11, 0x3a, 0x1d, 0xe8, 0x2f, 0x8f, 0xff, 0x0f, 0x00,
+	0x00, 0xff, 0xff, 0x36, 0xb7, 0x3f, 0x5c, 0xcd, 0x0c, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -785,7 +1344,13 @@ type SpaceCloudClient interface {
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*Response, error)
 	Aggregate(ctx context.Context, in *AggregateRequest, opts ...grpc.CallOption) (*Response, error)
 	Batch(ctx context.Context, in *BatchRequest, opts ...grpc.CallOption) (*Response, error)
-	Call(ctx context.Context, in *FaaSRequest, opts ...grpc.CallOption) (*Response, error)
+	Call(ctx context.Context, in *FunctionsRequest, opts ...grpc.CallOption) (*Response, error)
+	RealTime(ctx context.Context, opts ...grpc.CallOption) (SpaceCloud_RealTimeClient, error)
+	Profile(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*Response, error)
+	Profiles(ctx context.Context, in *ProfilesRequest, opts ...grpc.CallOption) (*Response, error)
+	EditProfile(ctx context.Context, in *EditProfileRequest, opts ...grpc.CallOption) (*Response, error)
+	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*Response, error)
+	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*Response, error)
 }
 
 type spaceCloudClient struct {
@@ -850,9 +1415,85 @@ func (c *spaceCloudClient) Batch(ctx context.Context, in *BatchRequest, opts ...
 	return out, nil
 }
 
-func (c *spaceCloudClient) Call(ctx context.Context, in *FaaSRequest, opts ...grpc.CallOption) (*Response, error) {
+func (c *spaceCloudClient) Call(ctx context.Context, in *FunctionsRequest, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/proto.SpaceCloud/Call", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *spaceCloudClient) RealTime(ctx context.Context, opts ...grpc.CallOption) (SpaceCloud_RealTimeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_SpaceCloud_serviceDesc.Streams[0], "/proto.SpaceCloud/RealTime", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &spaceCloudRealTimeClient{stream}
+	return x, nil
+}
+
+type SpaceCloud_RealTimeClient interface {
+	Send(*RealTimeRequest) error
+	Recv() (*RealTimeResponse, error)
+	grpc.ClientStream
+}
+
+type spaceCloudRealTimeClient struct {
+	grpc.ClientStream
+}
+
+func (x *spaceCloudRealTimeClient) Send(m *RealTimeRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *spaceCloudRealTimeClient) Recv() (*RealTimeResponse, error) {
+	m := new(RealTimeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *spaceCloudClient) Profile(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/proto.SpaceCloud/Profile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *spaceCloudClient) Profiles(ctx context.Context, in *ProfilesRequest, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/proto.SpaceCloud/Profiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *spaceCloudClient) EditProfile(ctx context.Context, in *EditProfileRequest, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/proto.SpaceCloud/EditProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *spaceCloudClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/proto.SpaceCloud/SignIn", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *spaceCloudClient) SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/proto.SpaceCloud/SignUp", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -867,7 +1508,13 @@ type SpaceCloudServer interface {
 	Delete(context.Context, *DeleteRequest) (*Response, error)
 	Aggregate(context.Context, *AggregateRequest) (*Response, error)
 	Batch(context.Context, *BatchRequest) (*Response, error)
-	Call(context.Context, *FaaSRequest) (*Response, error)
+	Call(context.Context, *FunctionsRequest) (*Response, error)
+	RealTime(SpaceCloud_RealTimeServer) error
+	Profile(context.Context, *ProfileRequest) (*Response, error)
+	Profiles(context.Context, *ProfilesRequest) (*Response, error)
+	EditProfile(context.Context, *EditProfileRequest) (*Response, error)
+	SignIn(context.Context, *SignInRequest) (*Response, error)
+	SignUp(context.Context, *SignUpRequest) (*Response, error)
 }
 
 func RegisterSpaceCloudServer(s *grpc.Server, srv SpaceCloudServer) {
@@ -983,7 +1630,7 @@ func _SpaceCloud_Batch_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _SpaceCloud_Call_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FaaSRequest)
+	in := new(FunctionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -995,7 +1642,123 @@ func _SpaceCloud_Call_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/proto.SpaceCloud/Call",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SpaceCloudServer).Call(ctx, req.(*FaaSRequest))
+		return srv.(SpaceCloudServer).Call(ctx, req.(*FunctionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SpaceCloud_RealTime_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SpaceCloudServer).RealTime(&spaceCloudRealTimeServer{stream})
+}
+
+type SpaceCloud_RealTimeServer interface {
+	Send(*RealTimeResponse) error
+	Recv() (*RealTimeRequest, error)
+	grpc.ServerStream
+}
+
+type spaceCloudRealTimeServer struct {
+	grpc.ServerStream
+}
+
+func (x *spaceCloudRealTimeServer) Send(m *RealTimeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *spaceCloudRealTimeServer) Recv() (*RealTimeRequest, error) {
+	m := new(RealTimeRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _SpaceCloud_Profile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SpaceCloudServer).Profile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.SpaceCloud/Profile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SpaceCloudServer).Profile(ctx, req.(*ProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SpaceCloud_Profiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SpaceCloudServer).Profiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.SpaceCloud/Profiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SpaceCloudServer).Profiles(ctx, req.(*ProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SpaceCloud_EditProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SpaceCloudServer).EditProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.SpaceCloud/EditProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SpaceCloudServer).EditProfile(ctx, req.(*EditProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SpaceCloud_SignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignInRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SpaceCloudServer).SignIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.SpaceCloud/SignIn",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SpaceCloudServer).SignIn(ctx, req.(*SignInRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SpaceCloud_SignUp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignUpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SpaceCloudServer).SignUp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.SpaceCloud/SignUp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SpaceCloudServer).SignUp(ctx, req.(*SignUpRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1032,7 +1795,34 @@ var _SpaceCloud_serviceDesc = grpc.ServiceDesc{
 			MethodName: "Call",
 			Handler:    _SpaceCloud_Call_Handler,
 		},
+		{
+			MethodName: "Profile",
+			Handler:    _SpaceCloud_Profile_Handler,
+		},
+		{
+			MethodName: "Profiles",
+			Handler:    _SpaceCloud_Profiles_Handler,
+		},
+		{
+			MethodName: "EditProfile",
+			Handler:    _SpaceCloud_EditProfile_Handler,
+		},
+		{
+			MethodName: "SignIn",
+			Handler:    _SpaceCloud_SignIn_Handler,
+		},
+		{
+			MethodName: "SignUp",
+			Handler:    _SpaceCloud_SignUp_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "RealTime",
+			Handler:       _SpaceCloud_RealTime_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "server.proto",
 }

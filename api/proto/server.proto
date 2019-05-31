@@ -64,12 +64,67 @@ message BatchRequest {
   Meta meta = 2;
 }
 
-message FaaSRequest {
+message FunctionsRequest {
   bytes params = 1;
   int64 timeout = 2;
-  string engine = 3;
+  string service = 3;
   string function = 4;
   string token = 5;
+}
+
+message FeedData {
+  string queryId = 1;
+  string docId = 2;
+  string type = 3;
+  string group = 4;
+  string dbType = 5;
+  bytes payload = 6;
+  int64 timeStamp = 7;
+}
+
+message RealTimeRequest {
+  string token = 1;
+  string dbType = 2;
+  string project = 3;
+  string group = 4;
+  string type = 5;
+  string id = 6;
+  bytes where = 7;
+}
+
+message RealTimeResponse {
+  string group = 1;
+  string id = 2;
+  bool ack = 3;
+  string error = 4;
+  repeated FeedData feedData = 5;
+}
+
+message ProfileRequest {
+  string id = 1;
+  Meta meta = 2;
+}
+message ProfilesRequest {
+  Meta meta = 1;
+}
+message EditProfileRequest {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string password = 4;
+  Meta meta = 5;
+}
+message SignInRequest {
+  string email = 1;
+  string password = 2;
+  Meta meta = 3;
+}
+message SignUpRequest {
+  string email = 1;
+  string name = 2;
+  string password = 3;
+  string role = 4;
+  Meta meta = 5;
 }
 
 service SpaceCloud {
@@ -79,6 +134,13 @@ service SpaceCloud {
   rpc Delete(DeleteRequest) returns (Response) {}
   rpc Aggregate(AggregateRequest) returns (Response) {}
   rpc Batch(BatchRequest) returns (Response) {}
-  
-  rpc Call(FaaSRequest) returns (Response) {}
+
+  rpc Call(FunctionsRequest) returns (Response) {}
+  rpc RealTime (stream RealTimeRequest) returns (stream RealTimeResponse) {}
+
+  rpc Profile(ProfileRequest) returns (Response) {}
+  rpc Profiles(ProfilesRequest) returns (Response) {}
+  rpc EditProfile(EditProfileRequest) returns (Response) {}
+  rpc SignIn(SignInRequest) returns (Response) {}
+  rpc SignUp(SignUpRequest) returns (Response) {}
 }
