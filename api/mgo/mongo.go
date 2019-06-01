@@ -5,6 +5,8 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/utils"
+	"github.com/spaceuptech/space-api-go/api/model"
+	"github.com/spaceuptech/space-api-go/api/proto"
 )
 
 // Mongo is the client responsible to commuicate with the Mongo crud module
@@ -125,4 +127,34 @@ func GenerateFind(condition utils.M) utils.M {
 	}
 
 	return m
+}
+
+// Profile fires a profile request
+func (s *Mongo) Profile(id string) (*model.Response, error) {
+	m := &proto.Meta{DbType: s.db, Project: s.config.Project, Token: s.config.Token}
+	return s.config.Transport.Profile(context.TODO(), m, id)
+}
+
+// Profiles fires a profiles request
+func (s *Mongo) Profiles() (*model.Response, error) {
+	m := &proto.Meta{DbType: s.db, Project: s.config.Project, Token: s.config.Token}
+	return s.config.Transport.Profiles(context.TODO(), m)
+}
+
+// SignIn fires a signIn request
+func (s *Mongo) SignIn(email, password string) (*model.Response, error) {
+	m := &proto.Meta{DbType: s.db, Project: s.config.Project, Token: s.config.Token}
+	return s.config.Transport.SignIn(context.TODO(), m, email, password)
+}
+
+// SignUp fires a signUp request
+func (s *Mongo) SignUp(email, name, password, role string) (*model.Response, error) {
+	m := &proto.Meta{DbType: s.db, Project: s.config.Project, Token: s.config.Token}
+	return s.config.Transport.SignUp(context.TODO(), m, email, name, password, role)
+}
+
+// EditProfile fires a editProfile request
+func (s *Mongo) EditProfile(id string, values model.NewValues) (*model.Response, error) {
+	m := &proto.Meta{DbType: s.db, Project: s.config.Project, Token: s.config.Token}
+	return s.config.Transport.EditProfile(context.TODO(), m, id, values)
 }
