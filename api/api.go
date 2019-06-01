@@ -54,6 +54,6 @@ func (api *API) Postgres() *sql.SQL {
 }
 
 // Call invokes the specified function on the backend
-func (api *API) Call(engine, function string, params utils.M, timeout int) (*model.Response, error) {
-	return api.config.Transport.Call(context.TODO(), api.config.Token, engine, function, params, timeout)
+func (api *API) Call(service, function string, params utils.M, timeout int) (*model.Response, error) {
+	return api.config.Transport.Call(context.TODO(), api.config.Token, service, function, params, timeout)
 }
