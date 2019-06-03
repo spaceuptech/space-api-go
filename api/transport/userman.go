@@ -68,7 +68,7 @@ func (t *Transport) SignUp(ctx context.Context, meta *proto.Meta, email, name, p
 }
 
 // EditProfile triggers the gRPC editProfile function on space cloud
-func (t *Transport) EditProfile(ctx context.Context, meta *proto.Meta, id string, values model.NewValues) (*model.Response, error) {
+func (t *Transport) EditProfile(ctx context.Context, meta *proto.Meta, id string, values model.ProfileParams) (*model.Response, error) {
 	req := proto.EditProfileRequest{Id: id, Meta: meta}
 	if values.Name != "" {
 		req.Name = values.Name

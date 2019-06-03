@@ -154,7 +154,7 @@ func (s *Mongo) SignUp(email, name, password, role string) (*model.Response, err
 }
 
 // EditProfile fires a editProfile request
-func (s *Mongo) EditProfile(id string, values model.NewValues) (*model.Response, error) {
+func (s *Mongo) EditProfile(id string, values model.ProfileParams) (*model.Response, error) {
 	m := &proto.Meta{DbType: s.db, Project: s.config.Project, Token: s.config.Token}
 	return s.config.Transport.EditProfile(context.TODO(), m, id, values)
 }
