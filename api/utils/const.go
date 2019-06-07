@@ -15,6 +15,15 @@ const (
 
 	// Upsert is used to upsert documents
 	Upsert string = "upsert"
+
+	// Delete is used to delete documents
+	Delete string = "delete"
+
+	// Update is used to update documents
+	Update string = "update"
+
+	// Create is used to create documents
+	Create string = "create"
 )
 
 const (
