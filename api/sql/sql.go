@@ -45,6 +45,11 @@ func (s *SQL) Delete(col string) *Delete {
 	return initDelete(context.TODO(), s.db, col, utils.All, s.config)
 }
 
+// BeginBatch returns a helper to fire a batch request
+func (s *SQL) BeginBatch() *Batch {
+	return initBatch(context.TODO(), s.db, s.config)
+}
+
 // Profile fires a profile request
 func (s *SQL) Profile(id string) (*model.Response, error) {
 	m := &proto.Meta{DbType: s.db, Project: s.config.Project, Token: s.config.Token}

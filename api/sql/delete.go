@@ -39,3 +39,22 @@ func (d *Delete) Where(conds ...utils.M) *Delete {
 func (d *Delete) Apply() (*model.Response, error) {
 	return d.config.Transport.Delete(d.ctx, d.meta, d.op, d.find)
 }
+
+func (d *Delete) getProject() (string) {
+	return d.config.Project
+}
+func (d *Delete) getDb() (string) {
+	return d.meta.DbType
+}
+func (d *Delete) getToken() (string) {
+	return d.config.Token
+}
+func (d *Delete) getCollection() (string) {
+	return d.meta.Col
+}
+func (d *Delete) getOperation() (string) {
+	return d.op
+}
+func (d *Delete) getFind() (utils.M) {
+	return d.find
+}

@@ -80,6 +80,11 @@ func (s *Mongo) AggrOne(col string) *Aggr {
 	return initAggr(context.TODO(), s.db, col, utils.One, s.config)
 }
 
+// BeginBatch returns a helper to fire a batch request
+func (s *Mongo) BeginBatch() *Batch {
+	return initBatch(context.TODO(), s.db, s.config)
+}
+
 // GenerateFind generates a mongo db find clause from the provided condition
 func GenerateFind(condition utils.M) utils.M {
 	m := utils.M{}
