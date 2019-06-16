@@ -36,3 +36,14 @@ const (
 	// Postgres is the constant for selected Postgres
 	Postgres string = "sql-postgres"
 )
+
+const (
+	// TypeServiceRegister is the request type for service registration
+	TypeServiceRegister string = "service-register"
+
+	// TypeServiceUnregister is the request type for service removal
+	TypeServiceUnregister string = "service-unregister"
+
+	// TypeServiceRequest is type triggering a service's function
+	TypeServiceRequest string = "service-request"
+)
