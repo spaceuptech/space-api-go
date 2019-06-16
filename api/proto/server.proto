@@ -70,6 +70,19 @@ message FunctionsRequest {
   string service = 3;
   string function = 4;
   string token = 5;
+  string project = 6;
+}
+
+message FunctionsPayload {
+  bytes auth = 1;
+  bytes params = 2;
+  string service = 3;
+  string function = 4;
+  string type = 5;
+  string id = 6;
+  string error = 7;
+  string project = 8;
+  string token = 9;
 }
 
 message FeedData {
@@ -136,7 +149,8 @@ service SpaceCloud {
   rpc Batch(BatchRequest) returns (Response) {}
 
   rpc Call(FunctionsRequest) returns (Response) {}
-  rpc RealTime (stream RealTimeRequest) returns (stream RealTimeResponse) {}
+  rpc RealTime(stream RealTimeRequest) returns (stream RealTimeResponse) {}
+  rpc Service(stream FunctionsPayload) returns (stream FunctionsPayload) {}
 
   rpc Profile(ProfileRequest) returns (Response) {}
   rpc Profiles(ProfilesRequest) returns (Response) {}

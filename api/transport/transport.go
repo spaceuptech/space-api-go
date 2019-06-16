@@ -11,6 +11,7 @@ import (
 // Transport is the objct which handles all communication with the server
 type Transport struct {
 	stub proto.SpaceCloudClient
+	conn *grpc.ClientConn
 }
 
 // Init initialises a new transport
@@ -29,5 +30,13 @@ func Init(host, port string, sslEnabled bool) (*Transport, error) {
 	}
 
 	stub := proto.NewSpaceCloudClient(conn)
-	return &Transport{stub}, nil
+	return &Transport{stub, conn}, nil
+}
+
+func (t *Transport) GetStub() (proto.SpaceCloudClient) {
+	return t.stub
+}
+
+func (t *Transport) GetConn() (*grpc.ClientConn) {
+	return t.conn
 }
