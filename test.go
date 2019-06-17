@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/spaceuptech/space-api-go/api"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/service"
 	"fmt"
 )
 
@@ -22,12 +21,23 @@ func main() {
 	// resp, err := db.Get("books").Apply()
 	// fmt.Println(resp.Status)
 	// fmt.Println(err)
-	service := api.Service("service")
-	service.RegisterFunc("echo_func", Echo)
-	service.Start()
+	// service := api.Service("service")
+	// service.RegisterFunc("echo_func", Echo)
+	// service.Start()
+	db := api.MySQL()
+	db.LiveQuery("books").Subscribe(func(liveData *model.LiveData, changeType string) () {
+		fmt.Println(changeType)
+		// v := make([]interface{})
+		var v []interface{}
+		liveData.Unmarshal(&v)
+		fmt.Println(v)
+	}, func(err error) () {
+		fmt.Println(err)
+	})
+	for {}
 }
-func Echo(params, auth *model.Message, fn service.CallBackFunction) {
-	var i interface{}
-	params.Unmarshal(&i)
-	fn("response", i)
-}
+// func Echo(params, auth *model.Message, fn service.CallBackFunction) {
+// 	var i interface{}
+// 	params.Unmarshal(&i)
+// 	fn("response", i)
+// }

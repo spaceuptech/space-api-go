@@ -7,6 +7,7 @@ import (
 	"github.com/spaceuptech/space-api-go/api/utils"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
+	"github.com/spaceuptech/space-api-go/api/realtime"
 )
 
 // SQL is the client responsible to commuicate with the SQL crud module
@@ -48,6 +49,11 @@ func (s *SQL) Delete(col string) *Delete {
 // BeginBatch returns a helper to fire a batch request
 func (s *SQL) BeginBatch() *Batch {
 	return initBatch(context.TODO(), s.db, s.config)
+}
+
+// LiveQuery returns a helper to fire a liveQuery request
+func (s *SQL) LiveQuery(col string) *realtime.LiveQuery {
+	return realtime.Init(s.config, s.db, col)
 }
 
 // Profile fires a profile request

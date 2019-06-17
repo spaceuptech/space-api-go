@@ -38,6 +38,15 @@ const (
 )
 
 const (
+	// TypeRealtimeSubscribe is the request type for live query subscription
+	TypeRealtimeSubscribe string = "realtime-subscribe"
+
+	// TypeRealtimeUnsubscribe is the request type for live query subscription
+	TypeRealtimeUnsubscribe string = "realtime-unsubscribe"
+
+	// TypeRealtimeFeed is the response type for realtime feed
+	TypeRealtimeFeed string = "realtime-feed"
+
 	// TypeServiceRegister is the request type for service registration
 	TypeServiceRegister string = "service-register"
 
@@ -46,4 +55,15 @@ const (
 
 	// TypeServiceRequest is type triggering a service's function
 	TypeServiceRequest string = "service-request"
+)
+
+const (
+	// RealtimeInsert is for create operations
+	RealtimeInsert string = "insert"
+
+	// RealtimeUpdate is for update operations
+	RealtimeUpdate string = "update"
+
+	// RealtimeDelete is for delete operations
+	RealtimeDelete string = "delete"
 )

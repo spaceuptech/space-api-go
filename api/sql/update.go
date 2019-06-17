@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/mgo"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/utils"
@@ -29,9 +28,9 @@ func initUpdate(ctx context.Context, db, col, op string, config *config.Config) 
 // Where sets the where clause for the request
 func (u *Update) Where(conds ...utils.M) *Update {
 	if len(conds) == 1 {
-		u.find = mgo.GenerateFind(conds[0])
+		u.find = utils.GenerateFind(conds[0])
 	} else {
-		u.find = mgo.GenerateFind(utils.And(conds...))
+		u.find = utils.GenerateFind(utils.And(conds...))
 	}
 	return u
 }
