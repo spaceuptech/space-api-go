@@ -41,3 +41,22 @@ func (i *Insert) Doc(doc interface{}) *Insert {
 func (i *Insert) Apply() (*model.Response, error) {
 	return i.config.Transport.Insert(i.ctx, i.meta, i.op, i.obj)
 }
+
+func (i *Insert) getProject() (string) {
+	return i.config.Project
+}
+func (i *Insert) getDb() (string) {
+	return i.meta.DbType
+}
+func (i *Insert) getToken() (string) {
+	return i.config.Token
+}
+func (i *Insert) getCollection() (string) {
+	return i.meta.Col
+}
+func (i *Insert) getOperation() (string) {
+	return i.op
+}
+func (i *Insert) getDoc() (interface{}) {
+	return i.obj
+}

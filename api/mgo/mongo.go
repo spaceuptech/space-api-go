@@ -7,6 +7,7 @@ import (
 	"github.com/spaceuptech/space-api-go/api/utils"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
+	"github.com/spaceuptech/space-api-go/api/realtime"
 )
 
 // Mongo is the client responsible to commuicate with the Mongo crud module
@@ -80,53 +81,14 @@ func (s *Mongo) AggrOne(col string) *Aggr {
 	return initAggr(context.TODO(), s.db, col, utils.One, s.config)
 }
 
-// GenerateFind generates a mongo db find clause from the provided condition
-func GenerateFind(condition utils.M) utils.M {
-	m := utils.M{}
-	switch condition["type"].(string) {
-	case "and":
-		conds := condition["conds"].([]utils.M)
-		for _, c := range conds {
-			t := GenerateFind(c)
-			for k, v := range t {
-				m[k] = v
-			}
-		}
+// BeginBatch returns a helper to fire a batch request
+func (s *Mongo) BeginBatch() *Batch {
+	return initBatch(context.TODO(), s.db, s.config)
+}
 
-	case "or":
-		conds := condition["conds"].([]utils.M)
-		t := []utils.M{}
-		for _, c := range conds {
-			t = append(t, GenerateFind(c))
-		}
-		m["$or"] = t
-
-	case "cond":
-		f1 := condition["f1"].(string)
-		eval := condition["eval"].(string)
-		f2 := condition["f2"]
-
-		switch eval {
-		case "==":
-			m[f1] = map[string]interface{}{"$eq": f2}
-		case "!=":
-			m[f1] = map[string]interface{}{"$ne": f2}
-		case ">":
-			m[f1] = map[string]interface{}{"$gt": f2}
-		case "<":
-			m[f1] = map[string]interface{}{"$lt": f2}
-		case ">=":
-			m[f1] = map[string]interface{}{"$gte": f2}
-		case "<=":
-			m[f1] = map[string]interface{}{"$lte": f2}
-		case "in":
-			m[f1] = map[string]interface{}{"$in": f2}
-		case "notIn":
-			m[f1] = map[string]interface{}{"$nin": f2}
-		}
-	}
-
-	return m
+// LiveQuery returns a helper to fire a liveQuery request
+func (s *Mongo) LiveQuery(col string) *realtime.LiveQuery {
+	return realtime.Init(s.config, s.db, col)
 }
 
 // Profile fires a profile request

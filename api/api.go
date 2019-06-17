@@ -9,6 +9,7 @@ import (
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/transport"
+	"github.com/spaceuptech/space-api-go/api/service"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
@@ -56,4 +57,9 @@ func (api *API) Postgres() *sql.SQL {
 // Call invokes the specified function on the backend
 func (api *API) Call(service, function string, params utils.M, timeout int) (*model.Response, error) {
 	return api.config.Transport.Call(context.TODO(), api.config.Token, service, function, params, timeout)
+}
+
+// Service creates a Service instance
+func (api *API) Service(serviceName string) *service.Service {
+	return service.Init(api.config, serviceName)
 }

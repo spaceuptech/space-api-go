@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/mgo"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/utils"
@@ -28,9 +27,9 @@ func initDelete(ctx context.Context, db, col, op string, config *config.Config) 
 // Where sets the where clause for the request
 func (d *Delete) Where(conds ...utils.M) *Delete {
 	if len(conds) == 1 {
-		d.find = mgo.GenerateFind(conds[0])
+		d.find = utils.GenerateFind(conds[0])
 	} else {
-		d.find = mgo.GenerateFind(utils.And(conds...))
+		d.find = utils.GenerateFind(utils.And(conds...))
 	}
 	return d
 }
@@ -38,4 +37,23 @@ func (d *Delete) Where(conds ...utils.M) *Delete {
 // Apply executes the operation and returns the result
 func (d *Delete) Apply() (*model.Response, error) {
 	return d.config.Transport.Delete(d.ctx, d.meta, d.op, d.find)
+}
+
+func (d *Delete) getProject() (string) {
+	return d.config.Project
+}
+func (d *Delete) getDb() (string) {
+	return d.meta.DbType
+}
+func (d *Delete) getToken() (string) {
+	return d.config.Token
+}
+func (d *Delete) getCollection() (string) {
+	return d.meta.Col
+}
+func (d *Delete) getOperation() (string) {
+	return d.op
+}
+func (d *Delete) getFind() (utils.M) {
+	return d.find
 }
