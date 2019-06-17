@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/mgo"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/utils"
@@ -30,9 +29,9 @@ func initGet(ctx context.Context, db, col, op string, config *config.Config) *Ge
 // Where sets the where clause for the request
 func (get *Get) Where(conds ...utils.M) *Get {
 	if len(conds) == 1 {
-		get.find = mgo.GenerateFind(conds[0])
+		get.find = utils.GenerateFind(conds[0])
 	} else {
-		get.find = mgo.GenerateFind(utils.And(conds...))
+		get.find = utils.GenerateFind(utils.And(conds...))
 	}
 	return get
 }

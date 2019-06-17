@@ -29,9 +29,9 @@ func initGet(ctx context.Context, db, col, op string, config *config.Config) *Ge
 // Where sets the where clause for the request
 func (g *Get) Where(conds ...utils.M) *Get {
 	if len(conds) == 1 {
-		g.find = GenerateFind(conds[0])
+		g.find = utils.GenerateFind(conds[0])
 	} else {
-		g.find = GenerateFind(utils.And(conds...))
+		g.find = utils.GenerateFind(utils.And(conds...))
 	}
 	return g
 }

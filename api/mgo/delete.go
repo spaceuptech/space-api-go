@@ -27,9 +27,9 @@ func initDelete(ctx context.Context, db, col, op string, config *config.Config) 
 // Where sets the where clause for the request
 func (d *Delete) Where(conds ...utils.M) *Delete {
 	if len(conds) == 1 {
-		d.find = GenerateFind(conds[0])
+		d.find = utils.GenerateFind(conds[0])
 	} else {
-		d.find = GenerateFind(utils.And(conds...))
+		d.find = utils.GenerateFind(utils.And(conds...))
 	}
 	return d
 }

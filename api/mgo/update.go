@@ -28,9 +28,9 @@ func initUpdate(ctx context.Context, db, col, op string, config *config.Config) 
 // Where sets the where clause for the request
 func (u *Update) Where(conds ...utils.M) *Update {
 	if len(conds) == 1 {
-		u.find = GenerateFind(conds[0])
+		u.find = utils.GenerateFind(conds[0])
 	} else {
-		u.find = GenerateFind(utils.And(conds...))
+		u.find = utils.GenerateFind(utils.And(conds...))
 	}
 	return u
 }

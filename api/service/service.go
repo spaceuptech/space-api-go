@@ -33,8 +33,8 @@ func (s *Service) RegisterFunc(funcName string, function ServiceFunction) {
 	s.funcs[funcName] = function
 }
 
+// Start is used to start the particular service (is Blocking)
 func (s *Service) Start() {
-	registerRequest := &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRegister, Id: s.id, Project: s.config.Project, Token: s.config.Token}
 	conn := s.config.Transport.GetConn()
 	for {
 		state := conn.GetState()
@@ -44,7 +44,7 @@ func (s *Service) Start() {
 			if err != nil {
 				continue
 			}
-			c := make(chan *proto.FunctionsPayload)
+			c := make(chan *proto.FunctionsPayload, 10)
 			go func() {
 				for payload := range c {
 					if err := stream.Send(payload); err != nil {
@@ -52,7 +52,7 @@ func (s *Service) Start() {
 					}
 				}
 			}()
-			c <- registerRequest
+			c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRegister, Id: s.id, Project: s.config.Project, Token: s.config.Token}
 			for {
 				in, err := stream.Recv()
 				if err == io.EOF {
