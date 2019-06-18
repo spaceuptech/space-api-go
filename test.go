@@ -1,4 +1,4 @@
-package main
+package api_test
 
 import (
 	"github.com/spaceuptech/space-api-go/api"
