@@ -15,7 +15,7 @@ type Transport struct {
 }
 
 // Init initialises a new transport
-func Init(host, port string, sslEnabled bool) (*Transport, error) {
+func Init(url string, sslEnabled bool) (*Transport, error) {
 	dialOptions := []grpc.DialOption{}
 
 	if sslEnabled {
@@ -24,7 +24,7 @@ func Init(host, port string, sslEnabled bool) (*Transport, error) {
 		dialOptions = append(dialOptions, grpc.WithInsecure())
 	}
 
-	conn, err := grpc.Dial(host+":"+port, dialOptions...)
+	conn, err := grpc.Dial(url, dialOptions...)
 	if err != nil {
 		return nil, err
 	}
@@ -33,10 +33,12 @@ func Init(host, port string, sslEnabled bool) (*Transport, error) {
 	return &Transport{stub, conn}, nil
 }
 
-func (t *Transport) GetStub() (proto.SpaceCloudClient) {
+// GetStub returns the underlying gRPC stub
+func (t *Transport) GetStub() proto.SpaceCloudClient {
 	return t.stub
 }
 
-func (t *Transport) GetConn() (*grpc.ClientConn) {
+// GetConn returns the underlying gRPC client connection
+func (t *Transport) GetConn() *grpc.ClientConn {
 	return t.conn
 }

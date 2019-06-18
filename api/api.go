@@ -8,8 +8,8 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/service"
+	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
@@ -19,8 +19,8 @@ type API struct {
 }
 
 // Init initialised a new instance of the API object
-func Init(project, host, port string, sslEnabled bool) (*API, error) {
-	t, err := transport.Init(host, port, sslEnabled)
+func Init(project, url string, sslEnabled bool) (*API, error) {
+	t, err := transport.Init(url, sslEnabled)
 	if err != nil {
 		return nil, err
 	}
