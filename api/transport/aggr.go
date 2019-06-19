@@ -21,7 +21,7 @@ func (t *Transport) Aggr(ctx context.Context, meta *proto.Meta, op string, pipel
 		return nil, err
 	}
 
-	if res.Status >= 200 || res.Status < 300 {
+	if res.Status >= 200 && res.Status < 300 {
 		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
 	}
 

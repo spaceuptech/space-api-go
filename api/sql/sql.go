@@ -41,9 +41,19 @@ func (s *SQL) Update(col string) *Update {
 	return initUpdate(context.TODO(), s.db, col, utils.All, s.config)
 }
 
+// UpdateOne returns a helper to fire a update one request
+func (s *SQL) UpdateOne(col string) *Update {
+	return initUpdate(context.TODO(), s.db, col, utils.One, s.config)
+}
+
 // Delete returns a helper to fire a delete all request
 func (s *SQL) Delete(col string) *Delete {
 	return initDelete(context.TODO(), s.db, col, utils.All, s.config)
+}
+
+// DeleteOne returns a helper to fire a delete one request
+func (s *SQL) DeleteOne(col string) *Delete {
+	return initDelete(context.TODO(), s.db, col, utils.One, s.config)
 }
 
 // BeginBatch returns a helper to fire a batch request
