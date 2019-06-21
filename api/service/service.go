@@ -16,7 +16,7 @@ import (
 type CallBackFunction func(string, interface{})()
 type ServiceFunction func(*model.Message, *model.Message, CallBackFunction)()
 
-// Service contains the methods for the service instance
+// Service contains the values for the service instance
 type Service struct {
 	config  *config.Config
 	service string
