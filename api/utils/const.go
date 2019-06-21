@@ -67,3 +67,7 @@ const (
 	// RealtimeDelete is for delete operations
 	RealtimeDelete string = "delete"
 )
+const (
+	// PayloadSize is the size of the payload(in bytes) in file upload and download
+	PayloadSize int = 256*1024 // 256 kB
+)
