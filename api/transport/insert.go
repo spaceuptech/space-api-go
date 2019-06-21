@@ -21,7 +21,7 @@ func (t *Transport) Insert(ctx context.Context, meta *proto.Meta, op string, obj
 		return nil, err
 	}
 
-	if res.Status >= 200 || res.Status < 300 {
+	if res.Status >= 200 && res.Status < 300 {
 		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
 	}
 

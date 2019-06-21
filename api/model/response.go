@@ -15,7 +15,7 @@ type Response struct {
 
 // Unmarshal parses the response data and stores the result in the value pointed to by v. If v is nil or not a pointer, Unmarshal returns an InvalidUnmarshalError.
 func (res *Response) Unmarshal(v interface{}) error {
-	if res.Status >= 200 || res.Status < 300 {
+	if res.Status < 200 || res.Status >= 300 {
 		return errors.New("Result not present")
 	}
 	return json.Unmarshal(res.Data, v)

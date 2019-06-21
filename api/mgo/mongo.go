@@ -71,12 +71,12 @@ func (s *Mongo) DeleteOne(col string) *Delete {
 	return initDelete(context.TODO(), s.db, col, utils.One, s.config)
 }
 
-// Aggr returns a helper to fire a aggregation request
+// Aggr returns a helper to fire a aggregation (all) request
 func (s *Mongo) Aggr(col string) *Aggr {
 	return initAggr(context.TODO(), s.db, col, utils.All, s.config)
 }
 
-// AggrOne returns a helper to fire a aggregation request
+// AggrOne returns a helper to fire a aggregation (one) request
 func (s *Mongo) AggrOne(col string) *Aggr {
 	return initAggr(context.TODO(), s.db, col, utils.One, s.config)
 }

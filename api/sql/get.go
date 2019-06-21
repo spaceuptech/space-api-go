@@ -2,6 +2,7 @@ package sql
 
 import (
 	"context"
+	"strings"
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
@@ -43,9 +44,17 @@ func (get *Get) Select(sel map[string]int32) *Get {
 }
 
 // Sort sorts the result
-func (get *Get) Sort(order map[string]int32) *Get {
-	get.readOptions.Sort = order
-	return get
+func (g *Get) Sort(order ...string) *Get {
+	ord := make(map[string]int32)
+	for _, o := range order {
+		if strings.HasPrefix(o, "-") {
+			ord[o[1:]] = -1
+		} else {
+			ord[o] = 1
+		}
+	}
+	g.readOptions.Sort = ord
+	return g
 }
 
 // Skip skips some of the result
