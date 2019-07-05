@@ -18,7 +18,7 @@ import (
 type UnsubscribeFunction func()()
 
 // SnapshotFunction is the function that will be called when new realtime data is received
-type SnapshotFunction func(*model.LiveData, string)()
+type SnapshotFunction func(*model.LiveData, string, *model.ChangedData)()
 
 // ErrorFunction is the function that will be called when an error occurred. Unsubscribe is automatically called
 type ErrorFunction func(error)()
@@ -31,12 +31,28 @@ type LiveQuery struct {
 	id      string
 	find    utils.M
 	store   []*model.Storage
+	options *liveQueryOptions
+}
+
+type liveQueryOptions struct {
+	changesOnly bool
+	skipInitial bool
+}
+
+
+func (l *LiveQuery) getOptions() []byte {
+	// opts, err := json.Marshal("{\"skipInitial\":"+l.options.skipInitial+"}")
+	opts, err := json.Marshal(l.options)
+	if err != nil {
+		log.Println("Could not marshal the options clause")
+	}
+	return opts
 }
 
 // Init returns a LiveQuery object
 func Init(config *config.Config, db, col string) *LiveQuery {
 	id := uuid.NewV1().String()
-	return &LiveQuery{config, db, col, id, make(utils.M), make([]*model.Storage, 0)}
+	return &LiveQuery{config, db, col, id, make(utils.M), make([]*model.Storage, 0), &liveQueryOptions{false,false}}
 }
 
 // Where sets the where clause for the request
@@ -49,46 +65,80 @@ func (l *LiveQuery) Where(conds ...utils.M) *LiveQuery {
 	return l
 }
 
+func (l *LiveQuery) Options(options *model.LiveQueryOptions) *LiveQuery {
+	l.options = &liveQueryOptions{options.ChangesOnly, options.ChangesOnly}
+	return l
+}
+
 func (l *LiveQuery) unsubscribe(stream proto.SpaceCloud_RealTimeClient) UnsubscribeFunction {
 	return func() {
-		stream.Send(&proto.RealTimeRequest{Token: l.config.Token, DbType: l.db, Project: l.config.Project, Group: l.col, Type: utils.TypeRealtimeUnsubscribe, Id: l.id})
+		stream.Send(&proto.RealTimeRequest{Token: l.config.Token, DbType: l.db, Project: l.config.Project, Group: l.col, Type: utils.TypeRealtimeUnsubscribe, Id: l.id, Options: l.getOptions()})
 		stream.CloseSend()
 	}
 }
 
 func (l *LiveQuery) snapshotCallback(feedData []*proto.FeedData, onSnapshot SnapshotFunction) {
 	if len(feedData) > 0 {
-		for _, data := range feedData {
-			switch data.Type {
-			case utils.RealtimeInsert, utils.RealtimeUpdate:
-				exists := false
-				for _, s:= range l.store {
-					if s.Id == data.DocId {
-						exists = true
-						if s.Time <= data.TimeStamp {
-							s.Time = data.TimeStamp
-							s.Payload = data.Payload
-							s.IsDeleted = false
+		if l.options.changesOnly {
+			for _, data := range feedData {
+				if !(l.options.skipInitial && data.Type == utils.RealtimeInitial) {
+					if data.Type != utils.RealtimeDelete {
+						onSnapshot(&model.LiveData{nil}, data.Type, &model.ChangedData{data.Payload})
+					} else {
+						if l.db == utils.Mongo {
+							onSnapshot(&model.LiveData{nil}, data.Type, &model.ChangedData{[]byte("{\"_id\":"+data.DocId+"}")})
+						} else {
+							onSnapshot(&model.LiveData{nil}, data.Type, &model.ChangedData{[]byte("{\"id\":"+data.DocId+"}")})
 						}
 					}
 				}
-				if !exists {
+			}
+		} else {
+			for _, data := range feedData {
+				switch data.Type {
+				case utils.RealtimeInitial:
 					l.store = append(l.store, &model.Storage{data.DocId, data.TimeStamp, data.Payload, false})
-				}
-			case utils.RealtimeDelete:
-				for _, s:= range l.store {
-					if s.Id == data.DocId && s.Time <= data.TimeStamp {
-						s.Time = data.TimeStamp
-						s.Payload = data.Payload
-						s.IsDeleted = true
+				case utils.RealtimeInsert, utils.RealtimeUpdate:
+					exists := false
+					for _, s:= range l.store {
+						if s.Id == data.DocId {
+							exists = true
+							if s.Time <= data.TimeStamp {
+								s.Time = data.TimeStamp
+								s.Payload = data.Payload
+								s.IsDeleted = false
+							}
+						}
+					}
+					if !exists {
+						l.store = append(l.store, &model.Storage{data.DocId, data.TimeStamp, data.Payload, false})
+					}
+				case utils.RealtimeDelete:
+					for _, s:= range l.store {
+						if s.Id == data.DocId && s.Time <= data.TimeStamp {
+							s.Time = data.TimeStamp
+							s.Payload = data.Payload
+							s.IsDeleted = true
+						}
 					}
 				}
 			}
-		}
-		if len(feedData) == 1 {
-			onSnapshot(&model.LiveData{l.store}, feedData[0].Type)
-		} else {
-			onSnapshot(&model.LiveData{l.store}, "initial")
+			changeType := feedData[0].Type
+			if changeType == utils.RealtimeInitial {
+				if !l.options.skipInitial {
+					onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{make([]byte, 0)})
+				}
+			} else {
+				if !(changeType == utils.RealtimeDelete) {
+					onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{feedData[0].Payload})
+				} else {
+					if l.db == utils.Mongo {
+						onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{[]byte("{\"_id\":"+feedData[0].DocId+"}")})
+					} else {
+						onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{[]byte("{\"id\":"+feedData[0].DocId+"}")})
+					}
+				}
+			}
 		}
 	}
 }
@@ -111,7 +161,7 @@ func (l *LiveQuery) Subscribe(onSnapshot SnapshotFunction, onError ErrorFunction
 				if err != nil {
 					log.Println("Could not marshal the where clause")
 				}
-				subscribeRequest := &proto.RealTimeRequest{Token: l.config.Token, DbType: l.db, Project: l.config.Project, Group: l.col, Type: utils.TypeRealtimeSubscribe, Id: l.id, Where: findJSON}
+				subscribeRequest := &proto.RealTimeRequest{Token: l.config.Token, DbType: l.db, Project: l.config.Project, Group: l.col, Type: utils.TypeRealtimeSubscribe, Id: l.id, Where: findJSON, Options: l.getOptions()}
 				if err := stream.Send(subscribeRequest); err != nil {
 					log.Println("Failed to send the subscribe request")
 				}
