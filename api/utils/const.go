@@ -66,6 +66,9 @@ const (
 
 	// RealtimeDelete is for delete operations
 	RealtimeDelete string = "delete"
+
+	// RealtimeInitial is for initial operations
+	RealtimeInitial string = "initial"
 )
 const (
 	// PayloadSize is the size of the payload(in bytes) in file upload and download

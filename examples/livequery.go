@@ -12,11 +12,15 @@ func main() {
 		fmt.Println(err)
 	}
 	db := api.MySQL()
-	db.LiveQuery("books").Subscribe(func(liveData *model.LiveData, changeType string) () {
-		fmt.Println(changeType)
+	db.LiveQuery("books").Options(&model.LiveQueryOptions{ChangesOnly:false}).Subscribe(func(liveData *model.LiveData, changeType string, changedData *model.ChangedData) () {
+		fmt.Println("type", changeType)
 		var v []interface{}
 		liveData.Unmarshal(&v)
-		fmt.Println(v)
+		fmt.Println("data", v)
+		var v2 interface{}
+		changedData.Unmarshal(&v2)
+		fmt.Println("chagned", v2)
+		fmt.Println()
 	}, func(err error) () {
 		fmt.Println(err)
 	})
