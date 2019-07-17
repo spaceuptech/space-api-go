@@ -22,6 +22,8 @@ func (liveData *LiveData) Unmarshal(v interface{}) error {
 		}
 		b = b[:len(b)-1]
 		b = append(b, []byte("]")...)
+	} else {
+		b = []byte("[]")
 	}
 	return json.Unmarshal(b, v)
 }
