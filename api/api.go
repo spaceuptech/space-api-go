@@ -3,8 +3,7 @@ package api
 import (
 	"context"
 
-	"github.com/spaceuptech/space-api-go/api/mgo"
-	"github.com/spaceuptech/space-api-go/api/sql"
+	"github.com/spaceuptech/space-api-go/api/db"
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
@@ -41,18 +40,18 @@ func (api *API) SetProjectID(project string) {
 }
 
 // Mongo returns a mongo db client instance
-func (api *API) Mongo() *mgo.Mongo {
-	return mgo.Init(api.config)
+func (api *API) Mongo() *db.DB {
+	return db.Init(utils.Mongo, api.config)
 }
 
 // MySQL returns a mysql client instance
-func (api *API) MySQL() *sql.SQL {
-	return sql.Init(utils.MySQL, api.config)
+func (api *API) MySQL() *db.DB {
+	return db.Init(utils.MySQL, api.config)
 }
 
 // Postgres creates a postgres client instance
-func (api *API) Postgres() *sql.SQL {
-	return sql.Init(utils.Postgres, api.config)
+func (api *API) Postgres() *db.DB {
+	return db.Init(utils.Postgres, api.config)
 }
 
 // Call invokes the specified function on the backend
