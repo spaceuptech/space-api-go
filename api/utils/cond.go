@@ -15,7 +15,7 @@ func Or(conds ...M) M {
 	return M{"type": "or", "conds": conds}
 }
 
-// GenerateFind generates a mongo db find clause from the provided condition
+// GenerateFind generates a Mongo db find clause from the provided condition
 func GenerateFind(condition M) M {
 	m := M{}
 	switch condition["type"].(string) {

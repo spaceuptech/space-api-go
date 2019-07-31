@@ -1,4 +1,4 @@
-package sql
+package db
 
 import (
 	"context"
@@ -28,19 +28,19 @@ func initGet(ctx context.Context, db, col, op string, config *config.Config) *Ge
 }
 
 // Where sets the where clause for the request
-func (get *Get) Where(conds ...utils.M) *Get {
+func (g *Get) Where(conds ...utils.M) *Get {
 	if len(conds) == 1 {
-		get.find = utils.GenerateFind(conds[0])
+		g.find = utils.GenerateFind(conds[0])
 	} else {
-		get.find = utils.GenerateFind(utils.And(conds...))
+		g.find = utils.GenerateFind(utils.And(conds...))
 	}
-	return get
+	return g
 }
 
 // Select returns fields selectively
-func (get *Get) Select(sel map[string]int32) *Get {
-	get.readOptions.Select = sel
-	return get
+func (g *Get) Select(sel map[string]int32) *Get {
+	g.readOptions.Select = sel
+	return g
 }
 
 // Sort sorts the result
@@ -58,18 +58,24 @@ func (g *Get) Sort(order ...string) *Get {
 }
 
 // Skip skips some of the result
-func (get *Get) Skip(skip int) *Get {
-	get.readOptions.Skip = int64(skip)
-	return get
+func (g *Get) Skip(skip int) *Get {
+	g.readOptions.Skip = int64(skip)
+	return g
 }
 
 // Limit limits the number of results returned
-func (get *Get) Limit(limit int) *Get {
-	get.readOptions.Limit = int64(limit)
-	return get
+func (g *Get) Limit(limit int) *Get {
+	g.readOptions.Limit = int64(limit)
+	return g
+}
+
+// Key sets the key for the distinct query
+func (g *Get) Key(key string) *Get {
+	g.readOptions.Distinct = key
+	return g
 }
 
 // Apply executes the operation and returns the result
-func (get *Get) Apply() (*model.Response, error) {
-	return get.config.Transport.Read(get.ctx, get.meta, get.find, get.op, get.readOptions)
+func (g *Get) Apply() (*model.Response, error) {
+	return g.config.Transport.Read(g.ctx, g.meta, g.find, g.op, g.readOptions)
 }
