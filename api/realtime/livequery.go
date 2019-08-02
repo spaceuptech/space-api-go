@@ -26,13 +26,14 @@ type ErrorFunction func(error)
 
 // LiveQuery contains the methods for the liveQuery instance
 type LiveQuery struct {
-	config  *config.Config
-	db      string
-	col     string
-	id      string
-	find    utils.M
-	store   []*model.Storage
-	options *liveQueryOptions
+	config       *config.Config
+	db           string
+	col          string
+	id           string
+	find         utils.M
+	store        []*model.Storage
+	options      *liveQueryOptions
+	subscription *LiveQuerySubscription
 }
 
 type liveQueryOptions struct {
@@ -52,7 +53,7 @@ func (l *LiveQuery) getOptions() []byte {
 // Init returns a LiveQuery object
 func Init(config *config.Config, db, col string) *LiveQuery {
 	id := uuid.NewV1().String()
-	return &LiveQuery{config, db, col, id, make(utils.M), make([]*model.Storage, 0), &liveQueryOptions{false, false}}
+	return &LiveQuery{config, db, col, id, make(utils.M), make([]*model.Storage, 0), &liveQueryOptions{false, false}, nil}
 }
 
 // Where sets the where clause for the request
@@ -126,22 +127,32 @@ func (l *LiveQuery) snapshotCallback(feedData []*proto.FeedData, onSnapshot Snap
 			}
 		}
 		if len(feedData) == 0 {
-			onSnapshot(&model.LiveData{l.store}, "initial", &model.ChangedData{make([]byte, 0)})
+			liveData := &model.LiveData{l.store}
+			l.subscription.snapshot = liveData
+			onSnapshot(liveData, "initial", &model.ChangedData{make([]byte, 0)})
 			return
 		}
 		changeType := feedData[0].Type
 		if changeType == utils.RealtimeInitial {
 			if !l.options.skipInitial {
-				onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{make([]byte, 0)})
+				liveData := &model.LiveData{l.store}
+				l.subscription.snapshot = liveData
+				onSnapshot(liveData, changeType, &model.ChangedData{make([]byte, 0)})
 			}
 		} else {
 			if !(changeType == utils.RealtimeDelete) {
-				onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{feedData[0].Payload})
+				liveData := &model.LiveData{l.store}
+				l.subscription.snapshot = liveData
+				onSnapshot(liveData, changeType, &model.ChangedData{feedData[0].Payload})
 			} else {
 				if l.db == utils.Mongo {
-					onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{[]byte("{\"_id\":" + feedData[0].DocId + "}")})
+					liveData := &model.LiveData{l.store}
+					l.subscription.snapshot = liveData
+					onSnapshot(liveData, changeType, &model.ChangedData{[]byte("{\"_id\":" + feedData[0].DocId + "}")})
 				} else {
-					onSnapshot(&model.LiveData{l.store}, changeType, &model.ChangedData{[]byte("{\"id\":" + feedData[0].DocId + "}")})
+					liveData := &model.LiveData{l.store}
+					l.subscription.snapshot = liveData
+					onSnapshot(liveData, changeType, &model.ChangedData{[]byte("{\"id\":" + feedData[0].DocId + "}")})
 				}
 			}
 		}
@@ -149,7 +160,7 @@ func (l *LiveQuery) snapshotCallback(feedData []*proto.FeedData, onSnapshot Snap
 }
 
 // Subscribe is used to subscribe to a particular live query
-func (l *LiveQuery) Subscribe(onSnapshot SnapshotFunction, onError ErrorFunction) UnsubscribeFunction {
+func (l *LiveQuery) Subscribe(onSnapshot SnapshotFunction, onError ErrorFunction) *LiveQuerySubscription {
 	conn := l.config.Transport.GetConn()
 	var stream proto.SpaceCloud_RealTimeClient
 	go func() {
@@ -194,5 +205,6 @@ func (l *LiveQuery) Subscribe(onSnapshot SnapshotFunction, onError ErrorFunction
 			}
 		}
 	}()
-	return l.unsubscribe(stream)
+	l.subscription = &LiveQuerySubscription{l.unsubscribe(stream), &model.LiveData{nil}}
+	return l.subscription
 }

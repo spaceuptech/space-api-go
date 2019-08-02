@@ -15,7 +15,7 @@ func main() {
 	}
 	db := api.Mongo()
 	for {
-		unsubscribe := db.LiveQuery("books").Subscribe(func(liveData *model.LiveData, changeType string) () {
+		subscription := db.LiveQuery("books").Subscribe(func(liveData *model.LiveData, changeType string) () {
 			var v []interface{}
 			liveData.Unmarshal(&v)
 			fmt.Println(v)
@@ -24,6 +24,6 @@ func main() {
 		})
 		rand.Seed(time.Now().UnixNano())
 		time.Sleep(time.Duration(rand.Intn(6))*time.Second)
-		unsubscribe()
+		subscription.unsubscribe()
 	}
 }
