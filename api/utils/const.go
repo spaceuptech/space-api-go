@@ -55,6 +55,18 @@ const (
 
 	// TypeServiceRequest is type triggering a service's function
 	TypeServiceRequest string = "service-request"
+
+	// TypePubsubSubscribe is type triggering a pubsub subscribe
+	TypePubsubSubscribe string = "pubsub-subscribe"
+
+	// TypePubsubSubscribeFeed is type having a pubsub subscribe feed
+	TypePubsubSubscribeFeed string = "pubsub-subscribe-feed"
+
+	// TypePubsubUnsubscribe is type triggering a pubsub unsubscribe
+	TypePubsubUnsubscribe string = "pubsub-unsubscribe"
+
+	// TypePubsubUnsubscribeAll is type triggering a pubsub unsubscribe all
+	TypePubsubUnsubscribeAll string = "pubsub-unsubscribe-all"
 )
 
 const (

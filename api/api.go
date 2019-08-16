@@ -11,6 +11,7 @@ import (
 	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 	"github.com/spaceuptech/space-api-go/api/filestore"
+	"github.com/spaceuptech/space-api-go/api/pubsub"
 )
 
 // API is the main API object to communicate with space cloud
@@ -67,4 +68,9 @@ func (api *API) Service(serviceName string) *service.Service {
 // FileStore creates a FileStore instance
 func (api *API) Filestore() *filestore.Filestore {
 	return filestore.Init(api.config)
+}
+
+// Pubsub creates a Pubsub instance
+func (api *API) Pubsub() *pubsub.Pubsub {
+	return pubsub.Init(api.config)
 }
