@@ -87,7 +87,7 @@ func (p *Pubsub) QueueSubscribe(subject, queue string, onReceive OnReceive) *Pub
 							p.onReceive(m["subject"].(string), m["data"])
 						} else if in.Status != 200 {
 							log.Println("Pubsub Error:", "OperationType=", in.Type, "Status=", in.Status, in.Error)
-                        	p.unsubscribe(stream, subject)
+                        	p.Unsubscribe(stream, subject)
                         	return
 						}
 					}
@@ -98,7 +98,7 @@ func (p *Pubsub) QueueSubscribe(subject, queue string, onReceive OnReceive) *Pub
 			}
 		}
 	}()
-	p.subscription = &PubsubSubscription{subject, p.unsubscribe(stream, subject)}
+	p.subscription = &PubsubSubscription{subject, p.Unsubscribe(stream, subject)}
 	return p.subscription
 }
 
