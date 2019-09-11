@@ -5,9 +5,10 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
+	uuid "github.com/satori/go.uuid"
 )
 
-type websocketConnection struct {
+type WebsocketConnection struct {
 	connected            bool
 	isConnecting         bool
 	connectedOnce        bool
@@ -15,9 +16,9 @@ type websocketConnection struct {
 	onReconnectCallbacks []CallBackFunction
 	url                  string
 	pendingRequest       []Payload
-	address              string
 	sslEnable            bool
 	conn                 *websocket.Conn
+	options              Payload
 }
 
 type Payload struct {
@@ -33,28 +34,23 @@ type Payload struct {
 	Data     interface{} `json:"data"`
 }
 
-func (w *websocketConnection) RegisterCallBackFuntion(Type string, function CallBackFunction) {
+func (w *WebsocketConnection) RegisterCallBackFuntion(Type string, function CallBackFunction) {
 	w.callBacks[Type] = function
 }
 
-func (w *websocketConnection) UnRegisterCallBackFuntion(Type string) {
+func (w *WebsocketConnection) UnRegisterCallBackFuntion(Type string) {
 	delete(w.callBacks, Type)
 }
 
-func (w *websocketConnection) RegisterOnReconnectCallback(function CallBackFunction) {
+func (w *WebsocketConnection) RegisterOnReconnectCallback(function CallBackFunction) {
 	w.onReconnectCallbacks = append(w.onReconnectCallbacks, function)
 }
 
-func (w *websocketConnection) Init() {
+func (w *WebsocketConnection) Init(addr string, sslEnabled bool) {
 	w.isConnecting = false
 	w.connectedOnce = false
 	w.connected = false
-}
-
-func (w *websocketConnection) Connect(addr string, sslEnabled bool) error {
-	w.address = addr
 	w.sslEnable = sslEnabled
-	w.isConnecting = true
 
 	var u url.URL
 	if sslEnabled {
@@ -63,13 +59,18 @@ func (w *websocketConnection) Connect(addr string, sslEnabled bool) error {
 		u = url.URL{Scheme: "ws", Host: addr, Path: "/v1/api/socket/json"}
 	}
 	w.url = u.String()
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+}
+
+func (w *WebsocketConnection) Connect() error {
+	w.isConnecting = true
+
+	c, _, err := websocket.DefaultDialer.Dial(w.url, nil)
 	if err != nil {
 		log.Println("dial:", err)
-		w.connected = false
 		w.isConnecting = false
 		return err
 	}
+
 	w.conn = c
 	w.connected = true
 	w.connectedOnce = true
@@ -87,20 +88,31 @@ func (w *websocketConnection) Connect(addr string, sslEnabled bool) error {
 	return nil
 }
 
-func (w *websocketConnection) Send(Typ string, data interface{}) error {
-	payload := Payload{Type: Typ, Data: data}
+func (w *WebsocketConnection) Send(Typ string, data Payload) (string, error) {
+	id := uuid.NewV1().String() // genrate id using satori
+	data.Token = w.options.Token
+	payload := Payload{Id: id, Type: Typ, Data: data}
 	if !w.connected {
 		w.pendingRequest = append(w.pendingRequest, payload)
 		if !w.isConnecting {
-			err := w.Connect(w.address, w.sslEnable)
+			err := w.Connect()
 			if err != nil {
 				log.Println("Error establishing websocket", err)
 				w.connected = false
-				return err
+				return id, err
 			}
 			w.connected = true
 		}
 	}
 	w.conn.WriteJSON(payload)
-	return nil
+	return id, nil
+}
+
+func (w *WebsocketConnection) Request(Type string, data Payload) {
+	id, err := w.Send(Type, data)
+	if err != nil {
+		log.Println("Error in sending : ", err)
+	}
+
+	//	w.RegisterCallBackFuntion(id)
 }

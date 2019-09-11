@@ -20,9 +20,9 @@ type CallBackFunction func(string, interface{})
 
 //Init initialises a new transport
 func Init(addr string, sslEnabled bool) (*Transport, error) {
-	var w *websocketConnection
-	w.Init()
-	err := w.Connect(addr, sslEnabled)
+	var w *WebsocketConnection
+	w.Init(addr, sslEnabled)
+	err := w.Connect()
 	if err != nil {
 		log.Println("Error in establishing websocket connection", err)
 	}

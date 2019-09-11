@@ -19,6 +19,8 @@ type Service struct {
 	service string
 	id      string
 	funcs   map[string]ServiceFunction
+	// options interface{}
+	// store   interface{}
 }
 
 // RealtimeRequest is the object sent for realtime requests
@@ -36,6 +38,10 @@ type Payload struct {
 
 func Init(config *config.Config, service string) *Service {
 	id := uuid.NewV1().String()
+	var w transport.WebsocketConnection
+	var cb transport.CallBackFunctions
+	w.RegisterOnReconnectCallback(cb("service-register", {} ))
+
 	return &Service{config, service, id, make(map[string]ServiceFunction)}
 }
 
@@ -43,11 +49,16 @@ func (s *Service) RegisterFunc(funcName string, function ServiceFunction) {
 	s.funcs[funcName] = function
 }
 
+func (s *Service) ServiceRequest(req Payload) {
+	// function := req.Function
+	// params := req.Params
+	// auth := req.Auth
+	// if (!auth || Object.keys(auth) == 0) auth = null;
+
+}
+
 // Start is used to start the particular service (is Blocking)
 func (s *Service) Start() {
-	var serviceRequest interface{}
-	var callBackFunc transport.CallBackFunction
-	callBackFunc("service-request", serviceRequest)
 
 	con := s.config.Transport.GetWebsockConn()
 	for {
