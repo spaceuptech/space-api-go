@@ -1,20 +1,17 @@
 package service
 
 import (
-	"context"
-	uuid "github.com/satori/go.uuid"
-	"log"
-	"io"
 	"encoding/json"
+	"log"
 
-	"github.com/spaceuptech/space-api-go/api/proto"
+	uuid "github.com/satori/go.uuid"
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
+	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
-type CallBackFunction func(string, interface{})()
-type ServiceFunction func(*model.Message, *model.Message, CallBackFunction)()
+type ServiceFunction func(*model.Message, *model.Message, transport.CallBackFunction)
 
 // Service contains the values for the service instance
 type Service struct {
@@ -22,10 +19,29 @@ type Service struct {
 	service string
 	id      string
 	funcs   map[string]ServiceFunction
+	// options interface{}
+	// store   interface{}
+}
+
+// RealtimeRequest is the object sent for realtime requests
+type Payload struct {
+	Auth     []byte `json:"auth"`
+	Token    string `json:"token"`
+	Project  string `json:"project"`
+	Type     string `json:"type"`
+	Id       string `json:"id"`
+	Service  string `json:"service"`
+	Params   []byte `json:"params"`
+	Function string `json:"function"`
+	Error    string `json:"error"`
 }
 
 func Init(config *config.Config, service string) *Service {
 	id := uuid.NewV1().String()
+	var w transport.WebsocketConnection
+	var cb transport.CallBackFunctions
+	w.RegisterOnReconnectCallback(cb("service-register", {} ))
+
 	return &Service{config, service, id, make(map[string]ServiceFunction)}
 }
 
@@ -33,36 +49,38 @@ func (s *Service) RegisterFunc(funcName string, function ServiceFunction) {
 	s.funcs[funcName] = function
 }
 
+func (s *Service) ServiceRequest(req Payload) {
+	// function := req.Function
+	// params := req.Params
+	// auth := req.Auth
+	// if (!auth || Object.keys(auth) == 0) auth = null;
+
+}
+
 // Start is used to start the particular service (is Blocking)
 func (s *Service) Start() {
-	conn := s.config.Transport.GetConn()
+
+	con := s.config.Transport.GetWebsockConn()
 	for {
-		state := conn.GetState()
-		if state.String() == "READY" {
+		if con != nil {
 			log.Println("Connected to Space Cloud")
-			stream, err := s.config.Transport.GetStub().Service(context.TODO())
-			if err != nil {
-				continue
-			}
-			c := make(chan *proto.FunctionsPayload, 10)
+
+			c := make(chan *Payload, 10)
 			go func() {
 				for payload := range c {
-					if err := stream.Send(payload); err != nil {
-						log.Println("Failed to send a request:", err)
+					if err := con.WriteJSON(payload); err != nil {
+						log.Println("Error in sendin data  ", err)
 					}
 				}
 			}()
-			c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRegister, Id: s.id, Project: s.config.Project, Token: s.config.Token}
+			c <- &Payload{Service: s.service, Type: utils.TypeServiceRegister, Id: s.id, Project: s.config.Project, Token: s.config.Token}
 			for {
-				in, err := stream.Recv()
-				if err == io.EOF {
-					close(c)
-					return
-				}
+				in := Payload{}
+				err := con.ReadJSON(&in)
 				if err != nil {
-					log.Println("Failed to receive a request:", err)
-					break
+					log.Println("Error reading json.", err)
 				}
+
 				if in.Type == utils.TypeServiceRegister {
 					if in.Id == s.id {
 						temp := make(map[string]bool)
@@ -85,21 +103,21 @@ func (s *Service) Start() {
 								answer, err := json.Marshal(res)
 								if err != nil {
 									log.Println("Could not marshal the result", res)
-									c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Error: "Error parsing the result"}
+									c <- &Payload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Error: "Error parsing the result"}
 								} else {
-									c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Params: answer}
+									c <- &Payload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Params: answer}
 								}
 							}
 						})
 					} else {
-						c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Error: "Function Not Registered"}
+						c <- &Payload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Error: "Function Not Registered"}
 					}
 				}
 			}
 			close(c)
 		} else {
 			log.Println("Not connected. Attempting to Reconnect...")
-			conn.WaitForStateChange(context.TODO(), state)
+
 		}
 	}
 }
