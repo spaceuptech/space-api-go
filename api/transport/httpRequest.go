@@ -16,7 +16,7 @@ func Send(endpoint string, obj interface{}, meta *model.Meta) {
 	if endpoint != "batch" {
 		url = "/v1/api/" + meta.Project + "/crud/" + meta.DbType + "/" + meta.Col + "/" + endpoint
 	} else {
-		url = "/v1/api/" + meta.Project + "/crud/" + meta.DbType + "/" + meta.Col + "/" + endpoint
+		url = "/v1/api/" + meta.Project + "/crud/" + meta.DbType + "/" + endpoint
 	}
 	data, err := json.Marshal(obj)
 	if err != nil {
