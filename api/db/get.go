@@ -7,24 +7,28 @@ import (
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
+	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
 // Get contains the methods for the get operation
 type Get struct {
-	ctx         context.Context
-	meta        *proto.Meta
-	readOptions *proto.ReadOptions
+	ctx  context.Context
+	meta *proto.Meta
+	//	readOpn     *proto.ReadOptions
+	readOptions *model.ReadOptions
 	op          string
 	find        utils.M
 	config      *config.Config
+	httpMeta    *model.Meta
 }
 
 func initGet(ctx context.Context, db, col, op string, config *config.Config) *Get {
 	m := &proto.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
-	r := new(proto.ReadOptions)
+	meta := &model.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
+	//r := new(proto.ReadOptions)
 	f := make(utils.M)
-	return &Get{ctx, m, r, op, f, config}
+	return &Get{ctx, m, &model.ReadOptions{}, op, f, config, meta}
 }
 
 // Where sets the where clause for the request
@@ -59,23 +63,30 @@ func (g *Get) Sort(order ...string) *Get {
 
 // Skip skips some of the result
 func (g *Get) Skip(skip int) *Get {
-	g.readOptions.Skip = int64(skip)
+	a := int64(skip)
+	g.readOptions.Skip = &a
 	return g
 }
 
 // Limit limits the number of results returned
 func (g *Get) Limit(limit int) *Get {
-	g.readOptions.Limit = int64(limit)
+	a := int64(limit)
+	g.readOptions.Limit = &a
 	return g
 }
 
 // Key sets the key for the distinct query
 func (g *Get) Key(key string) *Get {
-	g.readOptions.Distinct = key
+	g.readOptions.Distinct = &key
 	return g
 }
 
 // Apply executes the operation and returns the result
 func (g *Get) Apply() (*model.Response, error) {
-	return g.config.Transport.Read(g.ctx, g.meta, g.find, g.op, g.readOptions)
+	transport.Send("read", g.createReadReq(), g.httpMeta)
+	return g.config.Transport.Read(g.ctx, g.meta, g.find, g.op, &proto.ReadOptions{})
+}
+
+func (g *Get) createReadReq() *model.ReadRequest {
+	return &model.ReadRequest{Find: g.find, Operation: g.op, Options: g.readOptions}
 }

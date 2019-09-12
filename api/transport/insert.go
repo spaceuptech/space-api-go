@@ -9,7 +9,7 @@ import (
 )
 
 // Insert triggers the gRPC create function on space cloud
-func (t *Transport) Insert(ctx context.Context, meta *proto.Meta, op string, obj interface{}) (*model.Response, error) {
+func (t *Transport) Insert(ctx context.Context, httpMeta *model.Meta, meta *proto.Meta, op string, obj interface{}) (*model.Response, error) {
 	objJSON, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err
