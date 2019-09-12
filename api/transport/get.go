@@ -23,7 +23,7 @@ func (t *Transport) Read(ctx context.Context, meta *proto.Meta, find utils.M, op
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil

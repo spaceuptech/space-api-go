@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"log"
+	"net/http"
 
 	"github.com/spaceuptech/space-api-go/api/proto"
 
@@ -11,22 +11,27 @@ import (
 
 // Transport is the objct which handles all communication with the server
 type Transport struct {
-	con  *websocket.Conn
-	stub proto.SpaceCloudClient
-	conn *grpc.ClientConn
+	// Transport variables
+	sslEnabled bool
+	addr       string
+
+	// Client drivers
+	httpClient *http.Client
+	con        *websocket.Conn
+	stub       proto.SpaceCloudClient
+	conn       *grpc.ClientConn
 }
 
 type CallBackFunction func(string, interface{})
 
-//Init initialises a new transport
-func Init(addr string, sslEnabled bool) (*Transport, error) {
-	var w *WebsocketConnection
-	w.Init(addr, sslEnabled)
-	err := w.Connect()
-	if err != nil {
-		log.Println("Error in establishing websocket connection", err)
+// New initialises a new transport
+func New(addr string, sslEnabled bool) *Transport {
+
+	return &Transport{
+		sslEnabled: sslEnabled,
+		addr:       addr,
+		httpClient: &http.Client{},
 	}
-	return &Transport{nil, nil, nil}, nil
 }
 
 // GetConn returns the underlying gRPC client connection

@@ -20,14 +20,11 @@ type API struct {
 }
 
 // Init initialised a new instance of the API object
-func Init(project, url string, sslEnabled bool) (*API, error) {
-	t, err := transport.Init(url, sslEnabled)
-	if err != nil {
-		return nil, err
-	}
+func Init(project, url string, sslEnabled bool) *API {
+	t := transport.New(url, sslEnabled)
 	c := &config.Config{Project: project, Transport: t}
 
-	return &API{c}, err
+	return &API{c}
 }
 
 // SetToken sets the JWT token to be used in each request
