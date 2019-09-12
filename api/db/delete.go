@@ -6,17 +6,16 @@ import (
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
 
-	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
 // Delete contains the methods for the delete operation
 type Delete struct {
 	ctx    context.Context
-	meta   *model.Meta
 	op     string
 	find   utils.M
 	config *config.Config
+	meta   *model.Meta
 }
 
 func initDelete(ctx context.Context, db, col, op string, config *config.Config) *Delete {
@@ -40,7 +39,6 @@ func (d *Delete) Where(conds ...utils.M) *Delete {
 
 // Apply executes the operation and returns the result
 func (d *Delete) Apply() (*model.Response, error) {
-	transport.Send("delete", d.createDeleteReq(), d.meta)
 	return d.config.Transport.Delete(d.ctx, d.meta, d.createDeleteReq())
 }
 
@@ -64,7 +62,5 @@ func (d *Delete) getFind() utils.M {
 }
 
 func (d *Delete) createDeleteReq() *model.DeleteRequest {
-	return &model.DeleteRequest{Find:d.find ,Operation: d.op}
+	return &model.DeleteRequest{Find: d.find, Operation: d.op}
 }
-
-

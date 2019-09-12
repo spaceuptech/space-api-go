@@ -16,7 +16,7 @@ type Get struct {
 	op          string
 	find        utils.M
 	config      *config.Config
-	httpMeta    *model.Meta
+	meta    *model.Meta
 }
 
 func initGet(ctx context.Context, db, col, op string, config *config.Config) *Get {
@@ -77,7 +77,7 @@ func (g *Get) Key(key string) *Get {
 
 // Apply executes the operation and returns the result
 func (g *Get) Apply() (*model.Response, error) {
-	return g.config.Transport.Read(g.ctx, g.httpMeta, g.createReadReq())
+	return g.config.Transport.Read(g.ctx, g.meta, g.createReadReq())
 }
 
 func (g *Get) createReadReq() *model.ReadRequest {

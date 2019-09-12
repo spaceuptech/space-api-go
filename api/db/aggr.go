@@ -5,7 +5,6 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/transport"
 )
 
 // Aggr contains the methods for the aggregation operation
@@ -31,8 +30,8 @@ func (a *Aggr) Pipe(pipeline []interface{}) *Aggr {
 
 // Apply executes the operation and returns the result
 func (a *Aggr) Apply() (*model.Response, error) {
-	transport.Send("aggr", a.createAggrReq(), a.meta)
-	return &model.Response{}, nil
+	return a.config.Transport.Aggr(a.ctx, a.meta, a.createAggrReq())
+
 }
 
 func (a *Aggr) createAggrReq() *model.AggregateRequest {

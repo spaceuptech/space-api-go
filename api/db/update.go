@@ -14,7 +14,7 @@ type Update struct {
 	op           string
 	find, update utils.M
 	config       *config.Config
-	httpMeta     *model.Meta
+	meta         *model.Meta
 }
 
 func initUpdate(ctx context.Context, db, col, op string, config *config.Config) *Update {
@@ -120,20 +120,20 @@ func (u *Update) CurrentDate(fields ...string) *Update {
 
 // Apply executes the operation and returns the result
 func (u *Update) Apply() (*model.Response, error) {
-	return u.config.Transport.Update(u.ctx, u.httpMeta, u.createUpdateReq())
+	return u.config.Transport.Update(u.ctx, u.meta, u.createUpdateReq())
 }
 
 func (u *Update) getProject() string {
 	return u.config.Project
 }
 func (u *Update) getDb() string {
-	return u.httpMeta.DbType
+	return u.meta.DbType
 }
 func (u *Update) getToken() string {
 	return u.config.Token
 }
 func (u *Update) getCollection() string {
-	return u.httpMeta.Col
+	return u.meta.Col
 }
 func (u *Update) getOperation() string {
 	return u.op
