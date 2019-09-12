@@ -5,7 +5,6 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
@@ -13,7 +12,6 @@ import (
 // Delete contains the methods for the delete operation
 type Delete struct {
 	ctx      context.Context
-	meta     *proto.Meta
 	op       string
 	find     utils.M
 	config   *config.Config
@@ -21,10 +19,12 @@ type Delete struct {
 }
 
 func initDelete(ctx context.Context, db, col, op string, config *config.Config) *Delete {
-	m := &proto.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
-	meta := &model.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
-	f := make(utils.M)
-	return &Delete{ctx, m, op, f, config, meta}
+	return &Delete{
+		ctx:      ctx,
+		httpMeta: &model.Meta{DbType: db, Col: col, Token: config.Token, Project: config.Project},
+		op:       op,
+		find:     make(utils.M),
+		config:   config}
 }
 
 // Where sets the where clause for the request
@@ -40,7 +40,7 @@ func (d *Delete) Where(conds ...utils.M) *Delete {
 // Apply executes the operation and returns the result
 func (d *Delete) Apply() (*model.Response, error) {
 	transport.Send("delete", d.createDeleteReq(), d.httpMeta)
-	return d.config.Transport.Delete(d.ctx, d.meta, d.op, d.find)
+	return d.config.Transport.Delete(d.ctx, d.meta, d.createDeleteReq())
 }
 
 func (d *Delete) getProject() string {
