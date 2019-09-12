@@ -6,7 +6,6 @@ import (
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
-	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
@@ -42,8 +41,7 @@ func (i *Insert) Doc(doc interface{}) *Insert {
 
 // Apply executes the operation and returns the result
 func (i *Insert) Apply() (*model.Response, error) {
-	transport.Send("create", i.createCreateReq(), i.httpMeta)
-	return i.config.Transport.Insert(i.ctx, i.httpMeta, i.meta, i.op, i.obj)
+	return i.config.Transport.Insert(i.ctx, i.httpMeta, i.createCreateReq())
 }
 
 func (i *Insert) getProject() string {

@@ -5,15 +5,12 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/proto"
-	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
 // Update contains the methods for the update operation
 type Update struct {
 	ctx          context.Context
-	meta         *proto.Meta
 	op           string
 	find, update utils.M
 	config       *config.Config
@@ -21,11 +18,10 @@ type Update struct {
 }
 
 func initUpdate(ctx context.Context, db, col, op string, config *config.Config) *Update {
-	m := &proto.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
 	meta := &model.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
 	f := make(utils.M)
 	u := make(utils.M)
-	return &Update{ctx, m, op, f, u, config, meta}
+	return &Update{ctx, op, f, u, config, meta}
 }
 
 // Where sets the where clause for the request
@@ -124,8 +120,7 @@ func (u *Update) CurrentDate(fields ...string) *Update {
 
 // Apply executes the operation and returns the result
 func (u *Update) Apply() (*model.Response, error) {
-	transport.Send("update", u.createUpdateReq(), u.httpMeta)
-	return u.config.Transport.Update(u.ctx, u.meta, u.op, u.find, u.update)
+	return u.config.Transport.Update(u.ctx, u.httpMeta, u.createUpdateReq())
 }
 
 func (u *Update) getProject() string {

@@ -5,25 +5,22 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/transport"
 )
 
 // Aggr contains the methods for the aggregation operation
 type Aggr struct {
 	ctx      context.Context
-	meta     *proto.Meta
 	op       string
 	pipeline []interface{}
 	config   *config.Config
-	httpMeta *model.Meta
+	meta     *model.Meta
 }
 
 func initAggr(ctx context.Context, db, col, op string, config *config.Config) *Aggr {
-	m := &proto.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
 	meta := &model.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
 	p := []interface{}{}
-	return &Aggr{ctx, m, op, p, config, meta}
+	return &Aggr{ctx, op, p, config, meta}
 }
 
 // Pipe sets the pipeline to run on the backend
@@ -34,8 +31,8 @@ func (a *Aggr) Pipe(pipeline []interface{}) *Aggr {
 
 // Apply executes the operation and returns the result
 func (a *Aggr) Apply() (*model.Response, error) {
-	transport.Send("aggr", a.createAggrReq(), a.httpMeta)
-	return a.config.Transport.Aggr(a.ctx, a.meta, a.op, a.pipeline)
+	transport.Send("aggr", a.createAggrReq(), a.meta)
+	return &model.Response{}, nil
 }
 
 func (a *Aggr) createAggrReq() *model.AggregateRequest {

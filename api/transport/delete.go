@@ -9,6 +9,8 @@ import (
 
 // Delete triggers the gRPC delete function on space cloud
 func (t *Transport) Delete(ctx context.Context, meta *model.Meta, d *model.DeleteRequest) (*model.Response, error) {
+
+	// Make url for request
 	url := t.generateDatabaseURL(meta, utils.Delete)
 
 	// Fire the http request
@@ -22,5 +24,4 @@ func (t *Transport) Delete(ctx context.Context, meta *model.Meta, d *model.Delet
 	}
 
 	return &model.Response{Status: status, Error: result["error"].(string)}, nil
-
 }

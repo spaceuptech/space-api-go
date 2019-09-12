@@ -6,16 +6,12 @@ import (
 
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/proto"
-	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
 // Get contains the methods for the get operation
 type Get struct {
 	ctx  context.Context
-	meta *proto.Meta
-	//	readOpn     *proto.ReadOptions
 	readOptions *model.ReadOptions
 	op          string
 	find        utils.M
@@ -24,11 +20,9 @@ type Get struct {
 }
 
 func initGet(ctx context.Context, db, col, op string, config *config.Config) *Get {
-	m := &proto.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
 	meta := &model.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
-	//r := new(proto.ReadOptions)
 	f := make(utils.M)
-	return &Get{ctx, m, &model.ReadOptions{}, op, f, config, meta}
+	return &Get{ctx, &model.ReadOptions{}, op, f, config, meta}
 }
 
 // Where sets the where clause for the request
@@ -83,8 +77,7 @@ func (g *Get) Key(key string) *Get {
 
 // Apply executes the operation and returns the result
 func (g *Get) Apply() (*model.Response, error) {
-	transport.Send("read", g.createReadReq(), g.httpMeta)
-	return g.config.Transport.Read(g.ctx, g.meta, g.find, g.op, &proto.ReadOptions{})
+	return g.config.Transport.Read(g.ctx, g.httpMeta, g.createReadReq())
 }
 
 func (g *Get) createReadReq() *model.ReadRequest {

@@ -1,10 +1,16 @@
 package model
 
+// type Meta struct {
+// 	Project string `json:"project"`
+// 	DbType  string `json:"dbtype"`
+// 	Col     string `json:"col"`
+// 	Token   string `json:"token"`
+// }
+
 type Meta struct {
-	Project string `json:"project"`
-	DbType  string `json:"dbtype"`
-	Col     string `json:"col"`
-	Token   string `json:"token"`
+	DbType, Col string
+	Token       string
+	Project     string
 }
 
 // CreateRequest is the http body received for a create request

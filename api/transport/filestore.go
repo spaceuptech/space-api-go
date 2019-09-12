@@ -2,8 +2,8 @@ package transport
 
 import (
 	"context"
-	"io"
 	"errors"
+	"io"
 
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
@@ -12,14 +12,14 @@ import (
 
 // CreateFolder triggers the gRPC CreateFolder function on space cloud
 func (t *Transport) CreateFolder(ctx context.Context, meta *proto.Meta, path, name string) (*model.Response, error) {
-	req := proto.CreateFolderRequest{Name: name, Path:path, Meta: meta}
+	req := proto.CreateFolderRequest{Name: name, Path: path, Meta: meta}
 	res, err := t.stub.CreateFolder(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -27,14 +27,14 @@ func (t *Transport) CreateFolder(ctx context.Context, meta *proto.Meta, path, na
 
 // DeleteFile triggers the gRPC DeleteFile function on space cloud
 func (t *Transport) DeleteFile(ctx context.Context, meta *proto.Meta, path string) (*model.Response, error) {
-	req := proto.DeleteFileRequest{Path:path, Meta: meta}
+	req := proto.DeleteFileRequest{Path: path, Meta: meta}
 	res, err := t.stub.DeleteFile(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -42,14 +42,14 @@ func (t *Transport) DeleteFile(ctx context.Context, meta *proto.Meta, path strin
 
 // ListFiles triggers the gRPC ListFiles function on space cloud
 func (t *Transport) ListFiles(ctx context.Context, meta *proto.Meta, path string) (*model.Response, error) {
-	req := proto.ListFilesRequest{Path:path, Meta: meta}
+	req := proto.ListFilesRequest{Path: path, Meta: meta}
 	res, err := t.stub.ListFiles(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -62,26 +62,26 @@ func (t *Transport) UploadFile(ctx context.Context, meta *proto.Meta, path, name
 	if err != nil {
 		return nil, err
 	}
-	req := proto.UploadFileRequest{Path:path, Name:name, Meta:meta}
+	req := proto.UploadFileRequest{Path: path, Name: name, Meta: meta}
 	if err = stream.Send(&req); err != nil {
 		return nil, err // Ideally EOF should never occur
 	}
 	for {
 		n, err := reader.Read(buf)
-        if n > 0 {
+		if n > 0 {
 			buf = buf[:n]
 		}
-        if err == io.EOF {
-            break
-        }
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			return nil, err
 		}
-		req = proto.UploadFileRequest{Payload:buf}
+		req = proto.UploadFileRequest{Payload: buf}
 		if err1 := stream.Send(&req); err1 != nil {
 			if err1 == io.EOF {
 				break // Ideally this should never occur
-			} 
+			}
 			return nil, err1
 		}
 	}
@@ -91,7 +91,7 @@ func (t *Transport) UploadFile(ctx context.Context, meta *proto.Meta, path, name
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -99,8 +99,8 @@ func (t *Transport) UploadFile(ctx context.Context, meta *proto.Meta, path, name
 
 // DownloadFile triggers the gRPC DownloadFile function on space cloud
 func (t *Transport) DownloadFile(ctx context.Context, meta *proto.Meta, path string, writer io.Writer) error {
-	stream, err := t.stub.DownloadFile(ctx, &proto.DownloadFileRequest{Path:path, Meta: meta})
-	
+	stream, err := t.stub.DownloadFile(ctx, &proto.DownloadFileRequest{Path: path, Meta: meta})
+
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (t *Transport) DownloadFile(ctx context.Context, meta *proto.Meta, path str
 		if res.Status < 200 || res.Status > 300 {
 			return errors.New(res.Error)
 		}
-		
+
 		if _, err = writer.Write(res.Payload); err != nil {
 			return err
 		}

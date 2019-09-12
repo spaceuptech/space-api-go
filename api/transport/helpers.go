@@ -19,7 +19,7 @@ func (t *Transport) generateDatabaseURL(meta *model.Meta, op string) string {
 		scheme = "https"
 	}
 
-	return fmt.Sprintf("%s://%s/v1/api/%s/crud/%s/%s/%s", scheme, t.addr, meta.Project, meta.DB, meta.Col, op)
+	return fmt.Sprintf("%s://%s/v1/api/%s/crud/%s/%s/%s", scheme, t.addr, meta.Project, meta.DbType, meta.Col, op)
 }
 
 func (t *Transport) makeHTTPRequest(token, url string, payload interface{}) (int, utils.M, error) {
