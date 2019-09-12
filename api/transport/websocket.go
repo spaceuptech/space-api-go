@@ -109,7 +109,7 @@ func (w *WebsocketConnection) Send(Typ string, data Payload) (string, error) {
 }
 
 func (w *WebsocketConnection) Request(Type string, data Payload) {
-	id, err := w.Send(Type, data)
+	_, err := w.Send(Type, data)
 	if err != nil {
 		log.Println("Error in sending : ", err)
 	}

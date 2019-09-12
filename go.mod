@@ -1,5 +1,7 @@
 module github.com/spaceuptech/space-api-go
 
+go 1.13
+
 require (
 	github.com/golang/protobuf v1.3.1
 	github.com/gorilla/websocket v1.4.1

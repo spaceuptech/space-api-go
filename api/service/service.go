@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 
-	uuid "github.com/satori/go.uuid"
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/transport"
@@ -36,14 +35,18 @@ type Payload struct {
 	Error    string `json:"error"`
 }
 
-func Init(config *config.Config, service string) *Service {
-	id := uuid.NewV1().String()
-	var w transport.WebsocketConnection
-	var cb transport.CallBackFunctions
-	w.RegisterOnReconnectCallback(cb("service-register", {} ))
-
-	return &Service{config, service, id, make(map[string]ServiceFunction)}
+func New(config *config.Config, service string) *Service {
+	return nil
 }
+
+// func Init(config *config.Config, service string) *Service {
+// 	id := uuid.NewV1().String()
+// 	var w transport.WebsocketConnection
+// 	var cb transport.CallBackFunctions
+// 	w.RegisterOnReconnectCallback(cb("service-register", {} ))
+
+// 	return &Service{config, service, id, make(map[string]ServiceFunction)}
+// }
 
 func (s *Service) RegisterFunc(funcName string, function ServiceFunction) {
 	s.funcs[funcName] = function
