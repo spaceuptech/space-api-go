@@ -12,7 +12,7 @@ func (t *Transport) Aggr(ctx context.Context, meta *model.Meta, a *model.Aggrega
 
 	url := t.generateDatabaseURL(meta, utils.Aggregate)
 
-	status, result, err := t.makeHTTPRequest(meta.Token, url, utils.M{"pipe": a.Pipeline, "op": a.Operation})
+	status, result, err := t.makeHTTPRequest(meta.Token, url, a)
 	if err != nil {
 		return nil, err
 	}

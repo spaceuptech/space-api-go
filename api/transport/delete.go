@@ -14,7 +14,7 @@ func (t *Transport) Delete(ctx context.Context, meta *model.Meta, d *model.Delet
 	url := t.generateDatabaseURL(meta, utils.Delete)
 
 	// Fire the http request
-	status, result, err := t.makeHTTPRequest(meta.Token, url, utils.M{"find": d.Find, "op": d.Operation})
+	status, result, err := t.makeHTTPRequest(meta.Token, url, d)
 	if err != nil {
 		return nil, err
 	}

@@ -12,7 +12,7 @@ func (t *Transport) Read(ctx context.Context, meta *model.Meta, r *model.ReadReq
 	url := t.generateDatabaseURL(meta, utils.Read)
 
 	// Fire the http request
-	status, result, err := t.makeHTTPRequest(meta.Token, url, utils.M{"find": r.Find, "op": r.Operation, "options": &r.Options})
+	status, result, err := t.makeHTTPRequest(meta.Token, url, r)
 	if err != nil {
 		return nil, err
 	}

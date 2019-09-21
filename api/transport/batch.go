@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+
 	"github.com/spaceuptech/space-api-go/api/utils"
 
 	"github.com/spaceuptech/space-api-go/api/model"
@@ -12,7 +13,7 @@ func (t *Transport) Batch(ctx context.Context, meta *model.Meta, r *model.BatchR
 	url := t.generateDatabaseURL(meta, utils.Batch)
 
 	// Fire the http request
-	status, result, err := t.makeHTTPRequest(meta.Token, url, utils.M{"reqs": r.Requests})
+	status, result, err := t.makeHTTPRequest(meta.Token, url, r)
 	if err != nil {
 		return nil, err
 	}

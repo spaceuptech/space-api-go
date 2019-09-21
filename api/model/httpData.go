@@ -56,12 +56,12 @@ type AggregateRequest struct {
 
 // AllRequest is a union of parameters required in the various requests
 type AllRequest struct {
-	Col       string                 `json:"col"`
-	Document  interface{}            `json:"doc"`
-	Operation string                 `json:"op"`
-	Find      map[string]interface{} `json:"find"`
-	Update    map[string]interface{} `json:"update"`
-	Type      string                 `json:"type"`
+	Col       string      `json:"col"`
+	Document  interface{} `json:"doc"`
+	Operation string      `json:"op"`
+	Find      interface{} `json:"find"`
+	Update    interface{} `json:"update"`
+	Type      string      `json:"type"`
 }
 
 // BatchRequest is the http body for a batch request

@@ -12,7 +12,7 @@ func (t *Transport) Update(ctx context.Context, meta *model.Meta, d *model.Updat
 	url := t.generateDatabaseURL(meta, utils.Update)
 
 	// Fire the http request
-	status, result, err := t.makeHTTPRequest(meta.Token, url, utils.M{"find": d.Find, "op": d.Operation, "update": d.Update})
+	status, result, err := t.makeHTTPRequest(meta.Token, url, d)
 	if err != nil {
 		return nil, err
 	}

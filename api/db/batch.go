@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"github.com/spaceuptech/space-api-go/api/config"
@@ -47,21 +46,17 @@ func (b *Batch) Add(request *Request) error {
 	allReq := model.AllRequest{}
 	allReq.Col = req.getCollection()
 	allReq.Operation = req.getOperation()
-	if req, ok := req.(*Insert); ok {
-		docJSON, err := json.Marshal(req.getDoc())
-		if err != nil {
-			return err
-		}
-		allReq.Document = docJSON
+
+	switch req := req.(type) {
+	case *Insert:
+		allReq.Document = req.getDoc()
 		allReq.Type = utils.Create
-	}
-	if req, ok := req.(*Update); ok {
-		allReq.Find = map[string]interface{}{"find": req.getFind()}
-		allReq.Update = map[string]interface{}{"update": req.getUpdate()}
+	case *Update:
+		allReq.Find = req.getFind()
+		allReq.Update = req.getUpdate()
 		allReq.Type = utils.Update
-	}
-	if req, ok := req.(*Delete); ok {
-		allReq.Find = map[string]interface{}{"find": req.getFind()}
+	case *Delete:
+		allReq.Find = req.getFind()
 		allReq.Type = utils.Delete
 	}
 	b.reqs = append(b.reqs, allReq)

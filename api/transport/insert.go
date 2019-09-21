@@ -14,7 +14,7 @@ func (t *Transport) Insert(ctx context.Context, meta *model.Meta, i *model.Creat
 	url := t.generateDatabaseURL(meta, utils.Create)
 
 	// Fire the http request
-	status, result, err := t.makeHTTPRequest(meta.Token, url, utils.M{"doc": i.Document, "op": i.Operation})
+	status, result, err := t.makeHTTPRequest(meta.Token, url, i)
 	if err != nil {
 		return nil, err
 	}
