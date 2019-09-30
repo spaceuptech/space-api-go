@@ -2,28 +2,26 @@ package transport
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/proto"
+
+	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
 // Insert triggers the gRPC create function on space cloud
-func (t *Transport) Insert(ctx context.Context, meta *proto.Meta, op string, obj interface{}) (*model.Response, error) {
-	objJSON, err := json.Marshal(obj)
+func (t *Transport) Insert(ctx context.Context, meta *model.Meta, i *model.CreateRequest) (*model.Response, error) {
+	// Make url for request
+	url := t.generateDatabaseURL(meta, utils.Create)
+
+	// Fire the http request
+	status, result, err := t.makeHTTPRequest(meta.Token, url, i)
 	if err != nil {
 		return nil, err
 	}
 
-	req := proto.CreateRequest{Document: objJSON, Meta: meta, Operation: op}
-	res, err := t.stub.Create(ctx, &req)
-	if err != nil {
-		return nil, err
+	if status >= 200 && status < 300 {
+		return &model.Response{Status: status, Data: result}, nil
 	}
 
-	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
-	}
-
-	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
+	return &model.Response{Status: status, Error: result["error"].(string)}, nil
 }

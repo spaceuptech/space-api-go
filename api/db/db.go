@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/utils"
 	"github.com/spaceuptech/space-api-go/api/model"
 	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/realtime"
+	"github.com/spaceuptech/space-api-go/api/utils"
 )
 
 // DB is the client responsible to commuicate with the DB crud module

@@ -16,7 +16,7 @@ func (t *Transport) Profile(ctx context.Context, meta *proto.Meta, id string) (*
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -31,7 +31,7 @@ func (t *Transport) Profiles(ctx context.Context, meta *proto.Meta) (*model.Resp
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -46,7 +46,7 @@ func (t *Transport) SignIn(ctx context.Context, meta *proto.Meta, email, passwor
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -61,7 +61,7 @@ func (t *Transport) SignUp(ctx context.Context, meta *proto.Meta, email, name, p
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
@@ -85,7 +85,7 @@ func (t *Transport) EditProfile(ctx context.Context, meta *proto.Meta, id string
 	}
 
 	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: res.Result}, nil
+		return &model.Response{Status: int(res.Status), Data: nil}, nil
 	}
 
 	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
