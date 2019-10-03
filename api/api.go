@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+
 	"github.com/spaceuptech/space-api-go/api/db"
 	"github.com/spaceuptech/space-api-go/api/transport/websocket"
 
@@ -17,17 +18,15 @@ import (
 // API is the main API object to communicate with space cloud
 type API struct {
 	config *config.Config
+	socket *websocket.Socket
 }
 
 // Init initialised a new instance of the API object
 func Init(project, url string, sslEnabled bool) (*API, error) {
-	t, err := transport.Init(url, sslEnabled)
-	if err != nil {
-		return nil, err
-	}
+	t := transport.New(url, sslEnabled)
 	c := &config.Config{Project: project, Transport: t}
-	websocket.Init(url, c)
-	return &API{c}, err
+	w := websocket.Init(url, c)
+	return &API{config: c, socket: w}, nil
 }
 
 // SetToken sets the JWT token to be used in each request
@@ -62,13 +61,9 @@ func (api *API) Call(service, function string, params utils.M, timeout int) (*mo
 
 // Service creates a Service instance
 func (api *API) Service(url string, config *config.Config, serviceName string) *service.Service {
-	val,_ := service.Init(config,serviceName,api.websocket(url,config))
+	val, _ := service.Init(config, serviceName, api.socket)
 	// error handle
 	return val
-}
-
-func (api *API) websocket(url string, config *config.Config) *websocket.Socket {
-	return websocket.Init(url, config)
 }
 
 // FileStore creates a FileStore instance

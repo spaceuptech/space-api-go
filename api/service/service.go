@@ -1,9 +1,10 @@
 package service
 
 import (
+	"sync"
+
 	"github.com/spaceuptech/space-api-go/api/config"
 	"github.com/spaceuptech/space-api-go/api/transport/websocket"
-	"sync"
 )
 
 type Service struct {

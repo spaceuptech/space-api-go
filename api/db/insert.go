@@ -11,16 +11,18 @@ import (
 
 // Insert contains the methods for the create operation
 type Insert struct {
-	ctx    context.Context
-	meta   *proto.Meta
-	op     string
-	obj    interface{}
-	config *config.Config
+	ctx      context.Context
+	meta     *proto.Meta
+	op       string
+	obj      interface{}
+	config   *config.Config
+	httpMeta *model.Meta
 }
 
 func initInsert(ctx context.Context, db, col string, config *config.Config) *Insert {
 	m := &proto.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
-	return &Insert{ctx: ctx, meta: m, config: config}
+	meta := &model.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token}
+	return &Insert{ctx: ctx, meta: m, config: config, httpMeta: meta}
 }
 
 // Docs sets the documents to be inserted into the database
@@ -39,24 +41,28 @@ func (i *Insert) Doc(doc interface{}) *Insert {
 
 // Apply executes the operation and returns the result
 func (i *Insert) Apply() (*model.Response, error) {
-	return i.config.Transport.Insert(i.ctx, i.meta, i.op, i.obj)
+	return i.config.Transport.Insert(i.ctx, i.httpMeta, i.createCreateReq())
 }
 
-func (i *Insert) getProject() (string) {
+func (i *Insert) getProject() string {
 	return i.config.Project
 }
-func (i *Insert) getDb() (string) {
-	return i.meta.DbType
+func (i *Insert) getDb() string {
+	return i.httpMeta.DbType
 }
-func (i *Insert) getToken() (string) {
+func (i *Insert) getToken() string {
 	return i.config.Token
 }
-func (i *Insert) getCollection() (string) {
-	return i.meta.Col
+func (i *Insert) getCollection() string {
+	return i.httpMeta.Col
 }
-func (i *Insert) getOperation() (string) {
+func (i *Insert) getOperation() string {
 	return i.op
 }
-func (i *Insert) getDoc() (interface{}) {
+func (i *Insert) getDoc() interface{} {
 	return i.obj
+}
+
+func (i *Insert) createCreateReq() *model.CreateRequest {
+	return &model.CreateRequest{Document: i.obj, Operation: i.op}
 }

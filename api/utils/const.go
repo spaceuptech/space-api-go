@@ -7,6 +7,14 @@ const (
 	// One is used when oly a single record needs to be worked on
 	One string = "one"
 
+	// Read is used to Read documents
+	Read      string = "read"
+
+	Aggregate string = "aggr"
+
+	// Upsert is used to upsert documents
+	Batch string = "batch"
+
 	// Count is used to count the number of documents returned
 	Count string = "count"
 
@@ -84,5 +92,5 @@ const (
 )
 const (
 	// PayloadSize is the size of the payload(in bytes) in file upload and download
-	PayloadSize int = 256*1024 // 256 kB
+	PayloadSize int = 256 * 1024 // 256 kB
 )
