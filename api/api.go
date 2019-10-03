@@ -2,16 +2,16 @@ package api
 
 import (
 	"context"
-
 	"github.com/spaceuptech/space-api-go/api/db"
+	"github.com/spaceuptech/space-api-go/api/transport/websocket"
 
 	"github.com/spaceuptech/space-api-go/api/config"
+	"github.com/spaceuptech/space-api-go/api/filestore"
 	"github.com/spaceuptech/space-api-go/api/model"
+	"github.com/spaceuptech/space-api-go/api/pubsub"
 	"github.com/spaceuptech/space-api-go/api/service"
 	"github.com/spaceuptech/space-api-go/api/transport"
 	"github.com/spaceuptech/space-api-go/api/utils"
-	"github.com/spaceuptech/space-api-go/api/filestore"
-	"github.com/spaceuptech/space-api-go/api/pubsub"
 )
 
 // API is the main API object to communicate with space cloud
@@ -26,7 +26,7 @@ func Init(project, url string, sslEnabled bool) (*API, error) {
 		return nil, err
 	}
 	c := &config.Config{Project: project, Transport: t}
-
+	websocket.Init(url, c)
 	return &API{c}, err
 }
 
@@ -61,8 +61,14 @@ func (api *API) Call(service, function string, params utils.M, timeout int) (*mo
 }
 
 // Service creates a Service instance
-func (api *API) Service(serviceName string) *service.Service {
-	return service.Init(api.config, serviceName)
+func (api *API) Service(url string, config *config.Config, serviceName string) *service.Service {
+	val,_ := service.Init(config,serviceName,api.websocket(url,config))
+	// error handle
+	return val
+}
+
+func (api *API) websocket(url string, config *config.Config) *websocket.Socket {
+	return websocket.Init(url, config)
 }
 
 // FileStore creates a FileStore instance

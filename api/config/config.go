@@ -8,5 +8,6 @@ import (
 type Config struct {
 	Project   string
 	Token     string
+	IsSecure bool
 	Transport *transport.Transport
 }
