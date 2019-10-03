@@ -1,105 +1,94 @@
 package service
 
 import (
-	"context"
-	uuid "github.com/satori/go.uuid"
-	"log"
-	"io"
-	"encoding/json"
-
-	"github.com/spaceuptech/space-api-go/api/proto"
 	"github.com/spaceuptech/space-api-go/api/config"
-	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/utils"
+	"github.com/spaceuptech/space-api-go/api/transport/websocket"
+	"sync"
 )
 
-type CallBackFunction func(string, interface{})()
-type ServiceFunction func(*model.Message, *model.Message, CallBackFunction)()
-
-// Service contains the values for the service instance
 type Service struct {
-	config  *config.Config
-	service string
-	id      string
-	funcs   map[string]ServiceFunction
+	options  *config.Config
+	service  string
+	client   *websocket.Socket
+	function functionInfo
+	mux      sync.RWMutex
 }
 
-func Init(config *config.Config, service string) *Service {
-	id := uuid.NewV1().String()
-	return &Service{config, service, id, make(map[string]ServiceFunction)}
+type functionInfo struct {
+	storeFunction map[string]func(params interface{}, auth interface{})
+	response      FunctionResponse
 }
 
-func (s *Service) RegisterFunc(funcName string, function ServiceFunction) {
-	s.funcs[funcName] = function
+type FunctionResponse struct {
+	Type    string
+	Message interface{}
 }
 
-// Start is used to start the particular service (is Blocking)
-func (s *Service) Start() {
-	conn := s.config.Transport.GetConn()
-	for {
-		state := conn.GetState()
-		if state.String() == "READY" {
-			log.Println("Connected to Space Cloud")
-			stream, err := s.config.Transport.GetStub().Service(context.TODO())
-			if err != nil {
-				continue
+func Init(options *config.Config, serviceName string, client *websocket.Socket) (*Service, error) {
+	if err := client.ServiceRegister(serviceName); err != nil {
+		return nil, err
+	}
+	return &Service{
+		options: options,
+		service: serviceName,
+		client:  client,
+		function: functionInfo{
+			storeFunction: map[string]func(params interface{}, auth interface{}){},
+			response:      FunctionResponse{},
+		},
+	}, nil
+	// service request ?
+}
+
+func (s *Service) RegisterFunc(functionName string, function func(params interface{}, auth interface{}), response FunctionResponse) {
+	s.function.storeFunction[functionName] = function
+	s.function.response = response
+}
+
+func (s *Service) serviceRequest(ch chan websocket.FunctionsPayload) {
+	for req := range ch {
+		functionName := req.Func
+		params := req.Params
+		auth := req.Auth
+
+		if auth == nil || len(auth) == 0 {
+			auth = nil
+		}
+
+		s.mux.RLock()
+		funcInfo := s.function
+		s.mux.RUnlock()
+
+		function, ok := funcInfo.storeFunction[functionName]
+		if !ok {
+			s.client.WriteMessage <- websocket.WriteMessageStructure{
+				Type: websocket.ServiceRequest,
+				Data: websocket.FunctionsPayload{ID: req.ID, Error: "No function registered on the function"},
 			}
-			c := make(chan *proto.FunctionsPayload, 10)
-			go func() {
-				for payload := range c {
-					if err := stream.Send(payload); err != nil {
-						log.Println("Failed to send a request:", err)
-					}
-				}
-			}()
-			c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRegister, Id: s.id, Project: s.config.Project, Token: s.config.Token}
-			for {
-				in, err := stream.Recv()
-				if err == io.EOF {
-					close(c)
-					return
-				}
-				if err != nil {
-					log.Println("Failed to receive a request:", err)
-					break
-				}
-				if in.Type == utils.TypeServiceRegister {
-					if in.Id == s.id {
-						temp := make(map[string]bool)
-						json.Unmarshal(in.Params, &temp)
-						if temp["ack"] {
-							log.Println("Service registered")
-						} else {
-							close(c)
-							panic("Could Not Register Service")
-						}
-					}
-				} else if in.Type == utils.TypeServiceRequest {
-					function, found := s.funcs[in.Function]
-					if found {
-						go function(&model.Message{in.Params}, &model.Message{in.Auth}, func(kind string, res interface{}) {
-							if kind != "response" {
-								close(c)
-								panic("Type must be 'response'")
-							} else {
-								answer, err := json.Marshal(res)
-								if err != nil {
-									log.Println("Could not marshal the result", res)
-									c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Error: "Error parsing the result"}
-								} else {
-									c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Params: answer}
-								}
-							}
-						})
-					} else {
-						c <- &proto.FunctionsPayload{Service: s.service, Type: utils.TypeServiceRequest, Id: in.Id, Error: "Function Not Registered"}
-					}
-				}
+		}
+
+		function(params, auth)
+
+		switch funcInfo.response.Type {
+		case "response":
+			s.mux.Lock()
+			s.client.WriteMessage <- websocket.WriteMessageStructure{
+				Type: websocket.ServiceRequest,
+				Data: websocket.FunctionsPayload{ID: req.ID, Params: req.Params},
 			}
-			close(c)
-		} else {
-			log.Println("Not connected. Attempting to Reconnect...")
-			conn.WaitForStateChange(context.TODO(), state)
+			s.mux.Unlock()
 		}
 	}
+}
+
+func (s *Service) Start() error {
+	if err := s.client.ServiceRegister(s.service); err != nil {
+		return err
+	}
+
+	ch := make(chan websocket.FunctionsPayload)
+	go s.serviceRequest(ch)
+	s.client.RegisterChannel(websocket.ServiceRequest, ch)
+
+	return nil
 }
