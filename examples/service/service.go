@@ -13,7 +13,7 @@ func main() {
 		fmt.Println(err)
 	}
 	api.SetToken("my_secret")
-	service := api.Service("service")
+	service, _ := api.Service("service")
 	service.RegisterFunc("echo_func", Echo)
 	service.Start()
 	

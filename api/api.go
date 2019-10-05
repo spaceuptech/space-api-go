@@ -60,10 +60,12 @@ func (api *API) Call(service, function string, params utils.M, timeout int) (*mo
 }
 
 // Service creates a Service instance
-func (api *API) Service(url string, config *config.Config, serviceName string) *service.Service {
-	val, _ := service.Init(config, serviceName, api.socket)
-	// error handle
-	return val
+func (api *API) Service(url string, config *config.Config, serviceName string) (*service.Service, error) {
+	val, err := service.Init(config, serviceName, api.socket)
+	if err != nil {
+		return  nil,err
+	}
+	return val, nil
 }
 
 // FileStore creates a FileStore instance

@@ -12,7 +12,7 @@ func main() {
 	if(err != nil) {
 		fmt.Println(err)
 	}
-	service := api.Service("service")
+	service, _ := api.Service("service")
 	service.RegisterFunc("echo_func", Echo)
 	service.Start()
 	
