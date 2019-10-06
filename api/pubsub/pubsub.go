@@ -1,108 +1,86 @@
 package pubsub
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
-	"io"
-	"log"
-
-	uuid "github.com/satori/go.uuid"
-
-	"github.com/spaceuptech/space-api-go/api/config"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/proto"
-	"github.com/spaceuptech/space-api-go/api/utils"
+	"github.com/spaceuptech/space-api-go/api/transport/websocket"
+	"log"
+	"net/http"
 )
 
-// UnsubscribeFunction is the function sent to the user, to help him/her unsubscribe
-type UnsubscribeFunction func()
-
-// OnReceive is the function that will be called when new data is published to a subscribed subject
-type OnReceive func(string, interface{})
-
-// Pubsub contains the methods for the pubsub instance
 type Pubsub struct {
-	config       *config.Config
-	id           string
-	subscription *PubsubSubscription
-	onReceive    OnReceive
+	url    string
+	appId  string
+	client *websocket.Socket
+	store  model.TypeStore
 }
 
-// Init returns a Pubsub object
-func Init(config *config.Config) *Pubsub {
-	id := uuid.NewV1().String()
-	return &Pubsub{config, id, nil, nil}
+func Init(url, appId string, client *websocket.Socket) *Pubsub {
+	return &Pubsub{url: url, appId: appId, client: client, store: model.TypeStore{}}
 }
 
-func (p *Pubsub) Unsubscribe(stream proto.SpaceCloud_PubsubSubscribeClient, subject string) UnsubscribeFunction {
-	return func() {
-		if stream == nil {
+func (p *Pubsub) queueSubscribe(subject, queue string, onReceive model.OnReceiveFunc, onError model.OnErrorFunc) *pubsubSubscription {
+	s := PubsubSubscribeInit(p.appId, subject, queue, p.client, p.store)
+	return s.subscribe(onReceive, onError)
+}
+
+func (p *Pubsub) subscribe(subject string, onReceive model.OnReceiveFunc, onError model.OnErrorFunc) *pubsubSubscription {
+	return p.queueSubscribe(subject, "", onReceive, onError)
+}
+
+func (p *Pubsub) publish(subject string, data interface{}) (string, map[string]interface{}) {
+	p.client.RegisterOnReconnectCallback(func() {
+		for subject, subjectValue := range p.store {
+			for queue, queueValue := range subjectValue {
+				for range queueValue {
+					p.queueSubscribe(subject, queue, nil, nil)
+				}
+			}
+		}
+	})
+
+	p.client.RegisterCallback(model.PubsubSubscribeFeed, func(data interface{}) {
+		m := &model.WebsocketMessage{}
+		if err := mapstructure.Decode(data, m); err != nil {
+			log.Println("pubsub publishing structure decoding error", err)
 			return
 		}
-		stream.Send(&proto.PubsubSubscribeRequest{Subject: subject, Type: utils.TypePubsubUnsubscribe, Token: p.config.Token, Project: p.config.Project, Id: p.id})
-		stream.CloseSend()
-	}
-}
+		for _, subjectValue := range p.store {
+			for _, queueValue := range subjectValue {
+				for id, value := range queueValue {
+					if id == m.ID {
+						onReceive, ok := value.(model.OnReceiveFunc)
+						if ok {
+							msg, ok := m.Data.(model.PubsubPublishRequest)
+							if !ok {
 
-// Subscribe is used to subscribe to a particular subject and its children
-func (p *Pubsub) Subscribe(subject string, onReceive OnReceive) *PubsubSubscription {
-	return p.QueueSubscribe(subject, "", onReceive)
-}
-
-// QueueSubscribe is used to subscribe to a particular subject and its children, using a queue
-func (p *Pubsub) QueueSubscribe(subject, queue string, onReceive OnReceive) *PubsubSubscription {
-	p.onReceive = onReceive
-	conn := p.config.Transport.GetConn()
-	var stream proto.SpaceCloud_PubsubSubscribeClient
-	go func() {
-		for {
-			state := conn.GetState()
-			if state.String() == "READY" {
-				var err error
-				stream, err = p.config.Transport.GetStub().PubsubSubscribe(context.TODO())
-				if err != nil {
-					continue
-				}
-				subscribeRequest := &proto.PubsubSubscribeRequest{Token: p.config.Token, Project: p.config.Project, Type: utils.TypePubsubSubscribe, Id: p.id, Subject: subject, Queue: queue}
-				if err := stream.Send(subscribeRequest); err != nil {
-					log.Println("Failed to send the subscribe request")
-				}
-				for {
-					in, err := stream.Recv()
-					if err == io.EOF {
-						return
-					}
-					if err != nil {
-						log.Println("Failed to receive a request:", err)
-						break
-					}
-
-					if in.Id == p.id {
-						if in.Type == utils.TypePubsubSubscribeFeed {
-							var m map[string]interface{}
-							err := json.Unmarshal(in.Msg, &m)
-							if err != nil {
-								log.Println("Error decoding received message")
 							}
-							p.onReceive(m["subject"].(string), m["data"])
-						} else if in.Status != 200 {
-							log.Println("Pubsub Error:", "OperationType=", in.Type, "Status=", in.Status, in.Error)
-                        	p.Unsubscribe(stream, subject)
-                        	return
+							onReceive(msg.Subject, msg.Data)
 						}
 					}
 				}
-			} else {
-				// log.Println("Not connected. Attempting to Reconnect...")
-				conn.WaitForStateChange(context.TODO(), state)
 			}
 		}
-	}()
-	p.subscription = &PubsubSubscription{subject, p.Unsubscribe(stream, subject)}
-	return p.subscription
-}
+	})
 
-// Publish publishes a message to a particular subject
-func (p *Pubsub) Publish(subject string, msg interface{}) (*model.Response, error) {
-	return p.config.Transport.PubsubPublish(context.TODO(), &proto.Meta{Project: p.config.Project, Token: p.config.Token}, subject, msg)
+	requestBody, err := json.Marshal(map[string]interface{}{
+		"subject": subject,
+		"data":    data,
+	})
+	if err != nil {
+
+	}
+	res, err := http.Post(p.url+"v1/api"+p.appId+"/pubsub", "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+
+	}
+	defer res.Body.Close()
+	result := map[string]interface{}{}
+	if err := json.NewDecoder(res.Body).Decode(result); err != nil {
+
+	}
+	return res.Status, result
+
 }

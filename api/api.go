@@ -60,10 +60,10 @@ func (api *API) Call(service, function string, params utils.M, timeout int) (*mo
 }
 
 // Service creates a Service instance
-func (api *API) Service(url string, config *config.Config, serviceName string) (*service.Service, error) {
+func (api *API) Service(config *config.Config, serviceName string) (*service.Service, error) {
 	val, err := service.Init(config, serviceName, api.socket)
 	if err != nil {
-		return  nil,err
+		return nil, err
 	}
 	return val, nil
 }
@@ -74,6 +74,6 @@ func (api *API) Filestore() *filestore.Filestore {
 }
 
 // Pubsub creates a Pubsub instance
-func (api *API) Pubsub() *pubsub.Pubsub {
-	return pubsub.Init(api.config)
+func (api *API) Pubsub(url string) *pubsub.Pubsub {
+	return pubsub.Init(url, api.config.Project, api.socket)
 }

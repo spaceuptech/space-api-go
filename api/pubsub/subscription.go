@@ -1,11 +1,18 @@
 package pubsub
 
-// PubsubSubscription represents the pubsub subscription
-type PubsubSubscription struct {
-	Subject         string
-	unsubscribeFunc UnsubscribeFunction
+type pubsubSubscription struct {
+	subject             string
+	unSubscribeFunction func()
 }
 
-func (p *PubsubSubscription) Unsubscribe() () {
-	p.unsubscribeFunc()
+func pubsubSubscriptionInit(subject string, unSubscribeFunction func()) *pubsubSubscription {
+	return &pubsubSubscription{subject: subject, unSubscribeFunction: unSubscribeFunction}
+}
+
+func (p *pubsubSubscription) getSubject() string {
+	return p.subject
+}
+
+func (p *pubsubSubscription) unSubscribe() {
+	p.unSubscribeFunction()
 }
