@@ -11,9 +11,6 @@ import (
 	"time"
 )
 
-const ServiceRegister string = "service-register"
-const ServiceRequest string = "service-request"
-
 type websocketOptions struct {
 	projectId string
 	token     string
@@ -58,7 +55,7 @@ func Init(url string, config *config.Config) *Socket {
 func (s *Socket) connect() error {
 	conn, _, err := websocket.DefaultDialer.Dial(s.url, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("websocket dialer error", err)
 		return err
 	}
 
@@ -66,8 +63,8 @@ func (s *Socket) connect() error {
 	s.setConnected(true)
 
 	if s.isConnectedOnce() {
-		for _, value := range s.onReconnectCallbacks {
-			value()
+		for _, fn := range s.onReconnectCallbacks {
+			fn()
 		}
 	}
 
@@ -75,7 +72,9 @@ func (s *Socket) connect() error {
 
 	if len(s.pendingMsg) != 0 {
 		for _, payload := range s.pendingMsg {
-			s.socket.WriteJSON(payload)
+			if err := s.socket.WriteJSON(payload); err != nil {
+				log.Println("websocket write error", err)
+			}
 		}
 		s.pendingMsg = []model.WebsocketMessage{}
 	}
@@ -116,13 +115,11 @@ func (s Socket) writerRoutine() {
 	for msg := range s.sendMessage {
 
 		if !s.getConnected() {
-			s.mux.Lock()
-			s.pendingMsg = append(s.pendingMsg, msg)
-			s.mux.Unlock()
+
 		}
 
 		if err := s.socket.WriteJSON(msg); err != nil {
-			log.Println(err)
+			log.Println("websocket write error", err)
 		}
 	}
 }
@@ -139,7 +136,7 @@ func (s *Socket) read() {
 		msg := model.WebsocketMessage{}
 		if s.getConnected() {
 			if err := s.socket.ReadJSON(&msg); err != nil {
-				log.Println(err)
+				log.Println("websocket read error", err)
 				s.setConnected(false)
 				time.Sleep(5 * time.Second)
 				continue

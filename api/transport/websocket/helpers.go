@@ -53,3 +53,9 @@ func (s *Socket) getRegisteredCallBack(Type string) (func(data interface{}), boo
 	fn, ok := s.registerCallbackMap[Type]
 	return fn, ok
 }
+
+func (s *Socket) addPendingMsg(msg model.WebsocketMessage) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.pendingMsg = append(s.pendingMsg, msg)
+}
