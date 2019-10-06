@@ -69,12 +69,14 @@ type BatchRequest struct {
 	Requests []AllRequest `json:"reqs"`
 }
 
+// ServiceRegisterRequest is a structure providing options for service register
 type ServiceRegisterRequest struct {
 	Service string `json:"service"`
 	Project string `json:"project"`
 	Token   string `json:"token"`
 }
 
+// WebsocketMessage is the body for a websocket request
 type WebsocketMessage struct {
 	Type string      `json:"type"`
 	Data interface{} `json:"data"`

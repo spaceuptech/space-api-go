@@ -25,8 +25,8 @@ type Socket struct {
 	connectedOnce        bool
 	options              websocketOptions
 	pendingMsg           []model.WebsocketMessage
-	Socket               *websocket.Conn
-	SendMessage          chan model.WebsocketMessage
+	socket               *websocket.Conn
+	sendMessage          chan model.WebsocketMessage
 	registerCallbackMap  map[string]func(data interface{})
 	onReconnectCallbacks []func()
 	mux                  sync.RWMutex
@@ -37,13 +37,22 @@ func Init(url string, config *config.Config) *Socket {
 	if config.IsSecure {
 		url = "wss://" + url + "/v1/api/" + config.Project + "/socket/json"
 	}
-	return &Socket{
+	s := &Socket{
 		url:                 url,
 		options:             websocketOptions{projectId: config.Project, token: config.Token},
 		registerCallbackMap: map[string]func(data interface{}){},
 		pendingMsg:          []model.WebsocketMessage{},
 		mux:                 sync.RWMutex{},
 	}
+
+	writeMessage := make(chan model.WebsocketMessage)
+	s.setWriterChannel(writeMessage)
+
+	// create a websocket reader & writer
+	go s.writerRoutine()
+	go s.read()
+
+	return s
 }
 
 func (s *Socket) connect() error {
@@ -56,26 +65,20 @@ func (s *Socket) connect() error {
 	s.setSocket(conn)
 	s.setConnected(true)
 
-	if s.getConnectedOnce() {
-		for _,value := range s.onReconnectCallbacks {
+	if s.isConnectedOnce() {
+		for _, value := range s.onReconnectCallbacks {
 			value()
 		}
 	}
 
+	s.setConnectedOnce(true)
+
 	if len(s.pendingMsg) != 0 {
 		for _, payload := range s.pendingMsg {
-			s.Socket.WriteJSON(payload)
+			s.socket.WriteJSON(payload)
 		}
 		s.pendingMsg = []model.WebsocketMessage{}
 	}
-
-	writeMessage := make(chan model.WebsocketMessage)
-	defer close(writeMessage)
-	s.setWriterChannel(writeMessage)
-
-	// create a websocket reader & writer
-	go s.writerRoutine()
-	go s.read()
 
 	return nil
 }
@@ -110,7 +113,7 @@ func (s *Socket) Request(msgType string, data interface{}) (interface{}, error) 
 }
 
 func (s Socket) writerRoutine() {
-	for msg := range s.SendMessage {
+	for msg := range s.sendMessage {
 
 		if !s.getConnected() {
 			s.mux.Lock()
@@ -118,25 +121,27 @@ func (s Socket) writerRoutine() {
 			s.mux.Unlock()
 		}
 
-		if err := s.Socket.WriteJSON(msg); err != nil {
+		if err := s.socket.WriteJSON(msg); err != nil {
 			log.Println(err)
 		}
 	}
 }
 
+// Send sends a message to server over websocket protocol
 func (s *Socket) Send(Type string, data interface{}) string {
 	id := uuid.NewV1().String()
-	s.SendMessage <- model.WebsocketMessage{ID: id, Type: Type, Data: data}
+	s.sendMessage <- model.WebsocketMessage{ID: id, Type: Type, Data: data}
 	return id
 }
 
 func (s *Socket) read() {
-	msg := model.WebsocketMessage{}
 	for {
+		msg := model.WebsocketMessage{}
 		if s.getConnected() {
-			if err := s.Socket.ReadJSON(&msg); err != nil {
+			if err := s.socket.ReadJSON(&msg); err != nil {
 				log.Println(err)
 				s.setConnected(false)
+				time.Sleep(5 * time.Second)
 				continue
 			}
 		} else {
@@ -147,14 +152,14 @@ func (s *Socket) read() {
 		}
 
 		if msg.ID != "" {
-			cb, ok := s.registerCallbackMap[msg.ID]
+			cb, ok := s.getRegisteredCallBack(msg.ID)
 			if ok {
 				go cb(msg.Data)
 				s.unregisterCallback(msg.ID)
 			}
 		}
 
-		cb, ok := s.registerCallbackMap[msg.Type]
+		cb, ok := s.getRegisteredCallBack(msg.Type)
 		if ok {
 			go cb(msg.Data)
 		}

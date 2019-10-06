@@ -20,46 +20,21 @@ type Service struct {
 
 type function func(params interface{}, auth map[string]interface{}) (interface{}, error)
 
-func Init(options *config.Config, serviceName string, client *websocket.	Socket) (*Service, error) {
-	client.RegisterOnReconnectCallback(func() {
-		v, err := client.Request(websocket.ServiceRegister, model.ServiceRegisterRequest{Service: serviceName, Project: options.Project, Token: options.Token})
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		responseData, ok := v.(map[string]bool)
-		if !ok {
-			log.Println("service initialization wrong type found")
-			return
-		}
-		data, ok := responseData["ack"]
-		if ok {
-			log.Println("service initialization didn't received acknowledgement from knowledge")
-			return
-		}
-		if !data {
-			log.Println("Could not connect to service")
-			return
-		}
-		log.Println("Service started successfully")
-	})
-
+func Init(options *config.Config, serviceName string, client *websocket.Socket) (*Service, error) {
 	return &Service{options: options, service: serviceName, client: client, function: map[string]function{}}, nil
 }
 
+// RegisterFunc registers a functions
 func (s *Service) RegisterFunc(functionName string, fn function) {
-	s.function[functionName] = fn
+	s.registerFunction(functionName, fn)
 }
 
 func (s *Service) serviceRequest(data interface{}) {
-	reqMap, ok := data.(map[string]interface{})
-	if !ok {
-		log.Println("service request type not found")
-	}
-
 	req := model.FunctionsPayload{}
-	if err := mapstructure.Decode(reqMap, &req); err != nil {
-		log.Println(err)
+	if err := mapstructure.Decode(data, &req); err != nil {
+		log.Println("Service request error ", err)
+		s.client.Send(websocket.ServiceRequest, model.FunctionsPayload{ID: req.ID, Error: "Service request error" + err.Error()})
+		return
 	}
 
 	functionName := req.Func
@@ -70,42 +45,31 @@ func (s *Service) serviceRequest(data interface{}) {
 		auth = nil
 	}
 
-	s.mux.RLock()
-	funcInfo := s.function
-	s.mux.RUnlock()
-
-	function, ok := funcInfo[functionName]
+	function, ok := s.getFunction(functionName)
 	if !ok {
+		log.Println("Service request no function registered on the service")
 		s.client.Send(websocket.ServiceRequest, model.FunctionsPayload{ID: req.ID, Error: "No function registered on the service"})
 		return
 	}
 	response, err := function(params, auth)
 	if err != nil {
-		log.Println(err)
+		log.Println("Service request error ", err)
+		s.client.Send(websocket.ServiceRequest, model.FunctionsPayload{ID: req.ID, Error: "Service request error" + err.Error()})
+		return
 	}
 	s.client.Send(websocket.ServiceRequest, model.FunctionsPayload{ID: req.ID, Params: response})
 }
 
+// Start
 func (s *Service) Start() error {
 	s.client.RegisterCallback(websocket.ServiceRequest, s.serviceRequest)
-
-	v, err := s.client.Request(websocket.ServiceRegister, model.ServiceRegisterRequest{Service: s.service, Project: s.options.Project, Token: s.options.Token,})
-	if err != nil {
+	s.client.RegisterOnReconnectCallback(func() {
+		if err := s.serviceRegister(websocket.ServiceRegister, model.ServiceRegisterRequest{Service: s.service, Project: s.options.Project, Token: s.options.Token}); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := s.serviceRegister(websocket.ServiceRegister, model.ServiceRegisterRequest{Service: s.service, Project: s.options.Project, Token: s.options.Token}); err != nil {
 		return err
 	}
-	responseData, ok := v.(map[string]bool)
-	if !ok {
-
-	}
-	data, ok := responseData["ack"]
-	if ok {
-
-	}
-	if !data {
-		log.Println("Could not connect to service")
-		return nil
-	}
-	log.Println("Service started successfully")
-
 	return nil
 }
