@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/spaceuptech/space-api-go"
-	"github.com/spaceuptech/space-api-go/api/utils"
 	"fmt"
-	"time"
 	"math/rand"
+	"time"
+
+	"github.com/spaceuptech/space-api-go"
+	"github.com/spaceuptech/space-api-go/utils"
 )
 
 func main() {

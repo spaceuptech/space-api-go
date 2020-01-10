@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/spaceuptech/space-api-go"
-	"github.com/spaceuptech/space-api-go/api/model"
-	"github.com/spaceuptech/space-api-go/api/service"
 	"fmt"
+
+	"github.com/spaceuptech/space-api-go"
+	"github.com/spaceuptech/space-api-go/model"
+	"github.com/spaceuptech/space-api-go/service"
 )
 
 func main() {

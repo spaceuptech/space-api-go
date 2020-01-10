@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/spaceuptech/space-api-go"
-	"github.com/spaceuptech/space-api-go/api/model"
 	"fmt"
 	"time"
+
+	"github.com/spaceuptech/space-api-go"
+	"github.com/spaceuptech/space-api-go/model"
 )
 
 func main() {
@@ -13,7 +14,7 @@ func main() {
 		fmt.Println(err)
 	}
 	db := api.MySQL()
-	subscription := db.LiveQuery("books").Options(&model.LiveQueryOptions{ChangesOnly:false}).
+	subscription := db.LiveQuery("books").Options(&model.LiveQueryOptions{ChangesOnly: false}).
 	Subscribe(func(liveData *model.LiveData, changeType string, changedData *model.ChangedData) () {
 		fmt.Println("type", changeType)
 		var v []interface{}

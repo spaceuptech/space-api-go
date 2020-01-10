@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/spaceuptech/space-api-go"
-	"github.com/spaceuptech/space-api-go/api/utils"
 	"fmt"
+
+	"github.com/spaceuptech/space-api-go"
+	"github.com/spaceuptech/space-api-go/utils"
 )
 
 func main() {
