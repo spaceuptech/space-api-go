@@ -2,6 +2,7 @@ package realtime
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	uuid "github.com/satori/go.uuid"
@@ -9,7 +10,6 @@ import (
 	"github.com/spaceuptech/space-api-go/transport/websocket"
 
 	"github.com/spaceuptech/space-api-go/model"
-	"github.com/spaceuptech/space-api-go/proto"
 	"github.com/spaceuptech/space-api-go/utils"
 )
 
@@ -27,14 +27,14 @@ type LiveQuery struct {
 	db      string
 	col     string
 	client  *websocket.Socket
-	store   model.TypeStore
+	store   model.DbStore
 	options *model.LiveQueryOptions
 	params  *model.RealtimeParams
 }
 
 // New returns a LiveQuery object
-func New(appId, db, col string, client *websocket.Socket, store []*model.Store) *LiveQuery {
-	return &LiveQuery{appId: appId, db: db, col: col, client: client, store: model.TypeStore{}, options: &model.LiveQueryOptions{}, params: &model.RealtimeParams{}}
+func New(appId, db, col string, client *websocket.Socket, store model.DbStore) *LiveQuery {
+	return &LiveQuery{appId: appId, db: db, col: col, client: client, store: store, options: &model.LiveQueryOptions{}, params: &model.RealtimeParams{}}
 }
 
 // Where sets the where clause for the request
@@ -61,45 +61,66 @@ func (l *LiveQuery) Options(options *model.LiveQueryOptions) *LiveQuery {
 	return l
 }
 
-func (l *LiveQuery) addSubscription(id string, onSnapShot model.SnapshotFunction, onError model.OnErrorFunction) func() {
-	l.store[l.db][l.col][id] = model.Store{Subscription: model.StoreSubscription{OnSnapShot: onSnapShot, OnError: onError}}
+// used internally
+func (l *LiveQuery) addSubscription(id string) func() {
 	return func() {
 		_, err := l.client.Request(model.RealtimeUnsubscribe, model.RealtimeRequest{Group: l.col, ID: id, Options: l.options})
 		if err != nil {
-
+			log.Println("Failed to unsubscribe", err)
 		}
 		delete(l.store[l.db][l.col], id)
 	}
 }
 
-func (l *LiveQuery) subscribe(onSnapShot model.SnapshotFunction, onError model.OnErrorFunction) *model.StoreSubscriptionObject {
+// Subscribe is used to subscribe to a new document
+func (l *LiveQuery) Subscribe() *model.StoreSubscriptionObject {
 	id := uuid.NewV1().String()
-	return l.subscribeRaw(id, onSnapShot, onError)
+	return l.subscribeRaw(id)
 }
 
-func (l *LiveQuery) unsubscribe(stream proto.SpaceCloud_RealTimeClient) UnsubscribeFunction {
-	return func() {
-		if stream == nil {
-			return
-		}
-		stream.Send(&proto.RealTimeRequest{Token: l.config.Token, DbType: l.db, Project: l.config.Project, Group: l.col, Type: utils.TypeRealtimeUnsubscribe, Id: l.id, Options: l.getOptions()})
-		stream.CloseSend()
-	}
-}
-
-// Subscribe is used to subscribe to a particular live query
-func (l *LiveQuery) subscribeRaw(id string, onSnapShot model.SnapshotFunction, onError model.OnErrorFunction) *model.StoreSubscriptionObject {
+// subscribeRaw is used to subscribe to a particular live query
+func (l *LiveQuery) subscribeRaw(id string) *model.StoreSubscriptionObject {
 	req := model.RealtimeRequest{DBType: l.db, Project: l.appId, Group: l.col, ID: id, Where: l.params.Find, Options: l.options}
 
 	_, ok := l.store[l.db]
 	if !ok {
-
+		l.store[l.db] = model.ColStore{}
 	}
 	_, ok = l.store[l.db][l.col]
 	if !ok {
-
+		l.store[l.db][l.col] = model.IdStore{}
 	}
-	l.store[l.db][l.col][id] = model.Store{Snapshot: []model.SnapshotData{}, Subscription: model.StoreSubscription{}, Find: l.params.Find, Options: l.options}
+	c := make(chan *model.SubscriptionEvent, 5)
+	v := &model.Store{Snapshot: []*model.SnapshotData{}, C: c, Find: l.params.Find, Options: l.options}
+	l.store[l.db][l.col][id] = v
 
-	unsubscribe := l.addSubscription(id, onSnapShot, onError)
+	unsubscribe := l.addSubscription(id)
+
+	data, err := l.client.Request(utils.TypeRealtimeSubscribe, req)
+	if err != nil {
+		c <- model.NewSubscriptionEvent("", nil, nil, fmt.Errorf("error unable to subscribe to realtime feature %v", err))
+		unsubscribe()
+	}
+
+	go func() {
+		mapData, ok := data.(map[string]interface{})
+		if ok {
+			ack, ok := mapData["ack"]
+			if ok && !ack.(bool) {
+				err, ok := mapData["error"].(string)
+				if ok {
+					c <- model.NewSubscriptionEvent("", nil, nil, fmt.Errorf("error from server %v", err))
+					unsubscribe()
+				}
+			}
+			docs := mapData["docs"].([]interface{})
+			for _, doc := range docs {
+				c <- model.NewSubscriptionEvent("initial", doc.(map[string]interface{})["payload"], l.params.Find, nil)
+			}
+		}
+	}()
+
+	v.SubscriptionObject = model.LiveQuerySubscriptionInit(unsubscribe, []model.SnapshotData{}, c)
+
+	return &v.SubscriptionObject
 }

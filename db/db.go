@@ -1,24 +1,21 @@
 package db
 
 import (
-	"context"
-
 	"github.com/spaceuptech/space-api-go/config"
-	"github.com/spaceuptech/space-api-go/model"
-	"github.com/spaceuptech/space-api-go/proto"
 	"github.com/spaceuptech/space-api-go/realtime"
 	"github.com/spaceuptech/space-api-go/utils"
 )
 
 // DB is the client responsible to commuicate with the DB crud module
 type DB struct {
-	config *config.Config
-	db     string
+	config   *config.Config
+	realTime *realtime.Realtime
+	db       string
 }
 
 // New returns a DB client object
-func New(db string, config *config.Config) *DB {
-	return &DB{config, db}
+func New(db string, config *config.Config, realtime *realtime.Realtime) *DB {
+	return &DB{config, realtime, db}
 }
 
 // Insert returns a helper to fire a insert request
@@ -88,7 +85,7 @@ func (d *DB) BeginBatch() *Batch {
 
 // LiveQuery returns a helper to fire a liveQuery request
 func (d *DB) LiveQuery(col string) *realtime.LiveQuery {
-	return realtime.New(d.config, d.db, col)
+	return d.realTime.LiveQuery(d.db, col)
 }
 
 // TODO: add support for the user management module

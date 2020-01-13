@@ -5,11 +5,11 @@ import (
 	"github.com/spaceuptech/space-api-go/utils"
 )
 
-func (l *LiveQuery) snapshotCallback(store model.TypeStore, rows []FeedData) {
+func snapshotCallback(store model.DbStore, rows []FeedData) {
 	if len(rows) == 0 {
 		return
 	}
-	var obj = model.Store{}
+	var obj = new(model.Store)
 	var opts = model.LiveQueryOptions{}
 	for _, data := range rows {
 		obj = store[data.DBType][data.Group][data.QueryID]
@@ -17,87 +17,70 @@ func (l *LiveQuery) snapshotCallback(store model.TypeStore, rows []FeedData) {
 		if opts.ChangesOnly {
 			if !(opts.SkipInitial && data.Type == utils.RealtimeInitial) {
 				if data.Type != utils.RealtimeDelete {
-					obj.Subscription.OnSnapShot(nil, data.Type, data.Payload)
+					obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
 				} else {
-					if l.db == utils.Mongo {
-						obj.Subscription.OnSnapShot(nil, data.Type, map[string]string{"_id": data.DocID})
-					} else {
-						obj.Subscription.OnSnapShot(nil, data.Type, map[string]string{"id": data.DocID})
-					}
+					obj.C <- model.NewSubscriptionEvent(data.Type, nil, data.Find, nil)
 				}
 			}
 		} else {
 			if data.Type == utils.RealtimeInitial {
-				obj.Snapshot = append(obj.Snapshot, model.SnapshotData{Id: data.DocID, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false})
+				obj.Snapshot = append(obj.Snapshot, &model.SnapshotData{Find: data.Find, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false})
+				obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
 			} else if data.Type == utils.RealtimeInsert || data.Type == utils.RealtimeUpdate {
 				isExisting := false
-				temp := []interface{}{}
 				for _, row := range obj.Snapshot {
-					if row.Id == data.DocID {
+					if validate(data.Find, row.Payload.(map[string]interface{})) {
 						isExisting = true
 						if row.Time <= data.TimeStamp {
-							q := model.SnapshotData{Id: row.Id, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false}
-							temp = append(temp, q)
+							row.Time = data.TimeStamp
+							row.Payload = data.Payload
+							row.IsDeleted = false
+							obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
 						}
-						temp = append(temp, row)
 					}
 				}
 				if !isExisting {
-					obj.Snapshot = append(obj.Snapshot, model.SnapshotData{Id: data.DocID, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false,})
+					obj.Snapshot = append(obj.Snapshot, &model.SnapshotData{Find: data.Find, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false})
+					obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
 				}
 			} else if data.Type == utils.RealtimeDelete {
-				temp := []interface{}{}
 				for _, row := range obj.Snapshot {
-					if row.Id == data.DocID && row.Time <= data.TimeStamp {
-						q := model.SnapshotData{Id: row.Id, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false}
-						temp = append(temp, q)
+					if validate(row.Find, row.Payload.(map[string]interface{})) && row.Time <= data.TimeStamp {
+						row.Time = data.TimeStamp
+						row.Payload = map[string]interface{}{}
+						row.IsDeleted = true
+						obj.C <- model.NewSubscriptionEvent(data.Type, nil, data.Find, nil)
 					}
-					temp = append(temp, row)
 				}
 			}
 		}
 	}
-	if !opts.ChangesOnly {
-		changeType := rows[0].Type
-		if changeType == utils.RealtimeInitial {
-			if !opts.SkipInitial {
-				temp := []model.SnapshotData{}
-				for _, row := range obj.Snapshot {
-					if !row.IsDeleted {
-						a := model.SnapshotData{Payload: row.Payload}
-						temp = append(temp, a)
-					}
-				}
-				obj.SubscriptionObject.SnapShot = temp
-				obj.Subscription.OnSnapShot(obj.SubscriptionObject.SnapShot, changeType, nil)
-			}
-		} else {
-			if changeType != utils.RealtimeDelete {
-				temp := []model.SnapshotData{}
-				for _, row := range obj.Snapshot {
-					if !row.IsDeleted {
-						a := model.SnapshotData{Payload: row.Payload}
-						temp = append(temp, a)
-					}
-				}
-				obj.SubscriptionObject.SnapShot = temp
-				obj.Subscription.OnSnapShot(obj.SubscriptionObject.SnapShot, changeType, nil)
-			}
-		}
-	}
+}
 
+func validate(find map[string]interface{}, doc map[string]interface{}) bool {
+	for k, v := range find {
+		keyValue, p := doc[k]
+		if !p {
+			return false
+		}
+
+		if keyValue != v {
+			return false
+		}
+	}
+	return true
 }
 
 // FeedData is the format to send realtime data
 type FeedData struct {
-	QueryID   string      `json:"id" structs:"id"`
-	DocID     string      `json:"docId" structs:"docId"`
-	Type      string      `json:"type" structs:"type"`
-	Payload   interface{} `json:"payload" structs:"payload"`
-	TimeStamp int64       `json:"time" structs:"time"`
-	Group     string      `json:"group" structs:"group"`
-	DBType    string      `json:"dbType" structs:"dbType"`
-	TypeName  string      `json:"__typename,omitempty" structs:"__typename,omitempty"`
+	QueryID   string                 `json:"id" mapstructure:"id" structs:"id"`
+	Find      map[string]interface{} `json:"find" structs:"find"`
+	Type      string                 `json:"type" structs:"type"`
+	Payload   interface{}            `json:"payload" structs:"payload"`
+	TimeStamp int64                  `json:"time" structs:"time"`
+	Group     string                 `json:"group" structs:"group"`
+	DBType    string                 `json:"dbType" structs:"dbType"`
+	TypeName  string                 `json:"__typename,omitempty" structs:"__typename,omitempty"`
 }
 
 // RealtimeResponse is the object sent for realtime requests

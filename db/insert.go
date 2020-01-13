@@ -5,7 +5,6 @@ import (
 
 	"github.com/spaceuptech/space-api-go/config"
 	"github.com/spaceuptech/space-api-go/model"
-	"github.com/spaceuptech/space-api-go/proto"
 	"github.com/spaceuptech/space-api-go/utils"
 )
 

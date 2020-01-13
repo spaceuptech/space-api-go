@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/spaceuptech/space-api-go"
+	api "github.com/spaceuptech/space-api-go"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 		fmt.Println(err)
 	}
 	pubsub := api.Pubsub()
-	subscription := pubsub.Subscribe("/subject/", func(subject string, msg interface{}) () {
+	subscription := pubsub.Subscribe("/subject/", func(subject string, msg interface{}) {
 		fmt.Println("received", subject, msg)
 	})
 	for i := 0; i < 30; i++ {
@@ -23,4 +23,3 @@ func main() {
 	time.Sleep(2000)
 	subscription.Unsubscribe()
 }
-
