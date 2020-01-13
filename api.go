@@ -8,14 +8,16 @@ import (
 	"github.com/spaceuptech/space-api-go/db"
 	"github.com/spaceuptech/space-api-go/filestore"
 	"github.com/spaceuptech/space-api-go/model"
+	"github.com/spaceuptech/space-api-go/realtime"
 	"github.com/spaceuptech/space-api-go/transport"
 	"github.com/spaceuptech/space-api-go/transport/websocket"
 )
 
 // API is the main API object to communicate with space cloud
 type API struct {
-	config *config.Config
-	socket *websocket.Socket
+	config   *config.Config
+	realtime *realtime.Realtime
+	socket   *websocket.Socket
 }
 
 // New initialised a new instance of the API object
@@ -23,7 +25,8 @@ func New(project, url string, sslEnabled bool) *API {
 	t := transport.New(url, sslEnabled)
 	c := &config.Config{Project: project, Transport: t}
 	w := websocket.Init(url, c)
-	return &API{config: c, socket: w}
+	r := realtime.Init(project, w)
+	return &API{config: c, socket: w, realtime: r}
 }
 
 // SetToken sets the JWT token to be used in each request
@@ -38,7 +41,7 @@ func (api *API) SetProjectID(project string) {
 
 // DB creates a db client instance
 func (api *API) DB(dbAlias string) *db.DB {
-	return db.New(dbAlias, api.config)
+	return db.New(dbAlias, api.config, api.realtime)
 }
 
 // Call invokes the specified function on the backend

@@ -3,10 +3,10 @@ package filestore
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/spaceuptech/space-api-go/config"
 	"github.com/spaceuptech/space-api-go/model"
-	"github.com/spaceuptech/space-api-go/proto"
 )
 
 // Filestore contains the values for the filestore instance
@@ -19,27 +19,39 @@ func New(config *config.Config) *Filestore {
 	return &Filestore{config}
 }
 
+// todo implement this
 func (f *Filestore) CreateFolder(path, name string) (*model.Response, error) {
-	m := &proto.Meta{Project: f.config.Project, Token: f.config.Token}
-	return f.config.Transport.CreateFolder(context.TODO(), m, path, name)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return f.config.Transport.CreateFolder(ctx, f.config.Project, path, name)
 }
 
-func (f *Filestore) DeleteFile(path string) (*model.Response, error) {
-	m := &proto.Meta{Project: f.config.Project, Token: f.config.Token}
-	return f.config.Transport.DeleteFile(context.TODO(), m, path)
+func (f *Filestore) DeleteFile(path string, meta interface{}) (*model.Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return f.config.Transport.DeleteFile(ctx, meta, f.config.Project, path)
 }
 
-func (f *Filestore) ListFiles(path string) (*model.Response, error) {
-	m := &proto.Meta{Project: f.config.Project, Token: f.config.Token}
-	return f.config.Transport.ListFiles(context.TODO(), m, path)
+func (f *Filestore) ListFiles(listWhat, path string) (*model.Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return f.config.Transport.List(ctx, f.config.Project, listWhat, path)
 }
 
-func (f *Filestore) UploadFile(path, name string, reader io.Reader) (*model.Response, error) {
-	m := &proto.Meta{Project: f.config.Project, Token: f.config.Token}
-	return f.config.Transport.UploadFile(context.TODO(), m, path, name, reader)
+func (f *Filestore) UploadFile(path, name string, meta interface{}, reader io.Reader) (*model.Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return f.config.Transport.UploadFile(ctx, f.config.Project, path, name, meta, reader)
 }
 
 func (f *Filestore) DownloadFile(path string, writer io.Writer) error {
-	m := &proto.Meta{Project: f.config.Project, Token: f.config.Token}
-	return f.config.Transport.DownloadFile(context.TODO(), m, path, writer)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return f.config.Transport.DownloadFile(ctx, f.config.Project, path, writer)
+}
+
+func (f *Filestore) DoesFileOrFolderExists(path string) (*model.Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return f.config.Transport.DoesExists(ctx, f.config.Project, path)
 }

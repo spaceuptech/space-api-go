@@ -1,65 +1,135 @@
 package transport
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 
 	"github.com/spaceuptech/space-api-go/model"
-	"github.com/spaceuptech/space-api-go/proto"
 	"github.com/spaceuptech/space-api-go/utils"
 )
 
-// CreateFolder triggers the gRPC CreateFolder function on space cloud
-func (t *Transport) CreateFolder(ctx context.Context, meta *proto.Meta, path, name string) (*model.Response, error) {
-	req := proto.CreateFolderRequest{Name: name, Path: path, Meta: meta}
-	res, err := t.stub.CreateFolder(ctx, &req)
+// CreateFolder creates a folder/directory on selected file store
+func (t *Transport) CreateFolder(ctx context.Context, project, path, name string) (*model.Response, error) {
+	// Create an http request
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, t.generateFileUploadURL(project), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: nil}, nil
+	if path == "" {
+		path = "/"
 	}
 
-	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
+	// Set the url parameters
+	q := req.URL.Query()
+	q.Add("path", path)
+	q.Add("fileType", "dir")
+	q.Add("makeAll", "true")
+	q.Add("name", name)
+	req.URL.RawQuery = q.Encode()
+
+	// send the http request
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer utils.CloseTheCloser(res.Body)
+
+	// Unmarshal the response
+	result := utils.M{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		return &model.Response{Status: res.StatusCode, Data: nil}, nil
+	}
+
+	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
-// DeleteFile triggers the gRPC DeleteFile function on space cloud
-func (t *Transport) DeleteFile(ctx context.Context, meta *proto.Meta, path string) (*model.Response, error) {
-	req := proto.DeleteFileRequest{Path: path, Meta: meta}
-	res, err := t.stub.DeleteFile(ctx, &req)
+// DeleteFile deletes file/directory from selected file store
+func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, path string) (*model.Response, error) {
+	// Clean query parameters
+	if meta == nil {
+		meta = map[string]int{}
+	}
+	metaJSON, _ := json.Marshal(meta)
+
+	if path == "" {
+		path = "/"
+	}
+
+	// Create an http request
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, t.generateFileUploadURL(project)+path, bytes.NewBuffer(metaJSON))
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: nil}, nil
+	// send the http request
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer utils.CloseTheCloser(res.Body)
+
+	// Unmarshal the response
+	result := utils.M{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
 	}
 
-	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		return &model.Response{Status: res.StatusCode, Data: nil}, nil
+	}
+
+	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
-// ListFiles triggers the gRPC ListFiles function on space cloud
-func (t *Transport) ListFiles(ctx context.Context, meta *proto.Meta, path string) (*model.Response, error) {
-	req := proto.ListFilesRequest{Path: path, Meta: meta}
-	res, err := t.stub.ListFiles(ctx, &req)
+// List lists all the files/folders or both according to the mode under certain directory
+func (t *Transport) List(ctx context.Context, project, mode, path string) (*model.Response, error) {
+	if path == "" {
+		path = "/"
+	}
+	// Create an http request
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, t.generateFileUploadURL(project)+path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	if res.Status >= 200 && res.Status < 300 {
-		return &model.Response{Status: int(res.Status), Data: nil}, nil
+	// Set the url parameters
+	q := req.URL.Query()
+	q.Add("path", path)
+	q.Add("op", "list")
+	q.Add("mode", mode)
+	req.URL.RawQuery = q.Encode()
+
+	// send the http request
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer utils.CloseTheCloser(res.Body)
+
+	// Unmarshal the response
+	result := utils.M{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
 	}
 
-	return &model.Response{Status: int(res.Status), Error: res.Error}, nil
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		return &model.Response{Status: res.StatusCode, Data: result}, nil
+	}
+
+	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
-// UploadFile triggers the gRPC UploadFile function on space cloud
+// UploadFile creates a file in selected file store
 func (t *Transport) UploadFile(ctx context.Context, project, path, name string, meta interface{}, reader io.Reader) (*model.Response, error) {
 	r, writer := io.Pipe()
 
@@ -140,30 +210,40 @@ func (t *Transport) UploadFile(ctx context.Context, project, path, name string, 
 	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
-// DownloadFile triggers the gRPC DownloadFile function on space cloud
-func (t *Transport) DownloadFile(ctx context.Context, meta *proto.Meta, path string, writer io.Writer) error {
-	stream, err := t.stub.DownloadFile(ctx, &proto.DownloadFileRequest{Path: path, Meta: meta})
-
+// DownloadFile downloads specified file from selected file store
+func (t *Transport) DownloadFile(ctx context.Context, project, path string, writer io.Writer) error {
+	if path == "" {
+		path = "/"
+	}
+	// Create an http request
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, t.generateFileUploadURL(project)+path, nil)
 	if err != nil {
 		return err
 	}
-	for {
-		res, err := stream.Recv()
-		if err == io.EOF {
-			return nil
-		} else if err != nil {
-			return err
-		}
 
-		if res.Status < 200 || res.Status > 300 {
-			return errors.New(res.Error)
-		}
+	// Set the url parameters
+	q := req.URL.Query()
+	q.Add("path", path)
+	q.Add("op", "dir")
+	req.URL.RawQuery = q.Encode()
 
-		if _, err = writer.Write(res.Payload); err != nil {
-			return err
-		}
+	// send the http request
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
 	}
-	return nil
+	defer utils.CloseTheCloser(res.Body)
+
+	_, err = io.Copy(writer, res.Body)
+	if err != nil {
+		return fmt.Errorf("error downloading file unable to write")
+	}
+
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		return nil
+	}
+
+	return fmt.Errorf("error downloading file status code - %v", res.StatusCode)
 }
 
 func (t *Transport) generateFileUploadURL(project string) string {
@@ -173,4 +253,41 @@ func (t *Transport) generateFileUploadURL(project string) string {
 	}
 
 	return fmt.Sprintf("%s://%s/v1/api/%s/files", scheme, t.addr, project)
+}
+
+// DoesExists checks if specified file exists in selected file store
+func (t *Transport) DoesExists(ctx context.Context, project, path string) (*model.Response, error) {
+	if path == "" {
+		path = "/"
+	}
+	// Create an http request
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, t.generateFileUploadURL(project)+path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the url parameters
+	q := req.URL.Query()
+	q.Add("path", path)
+	q.Add("op", "exist")
+	req.URL.RawQuery = q.Encode()
+
+	// send the http request
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer utils.CloseTheCloser(res.Body)
+
+	// Unmarshal the response
+	result := utils.M{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		return &model.Response{Status: res.StatusCode, Data: result}, nil
+	}
+
+	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }

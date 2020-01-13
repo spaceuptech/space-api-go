@@ -66,7 +66,6 @@ func (w *WebsocketConnection) Connect() error {
 
 	c, _, err := websocket.DefaultDialer.Dial(w.url, nil)
 	if err != nil {
-		log.Println("dial:", err)
 		w.isConnecting = false
 		return err
 	}

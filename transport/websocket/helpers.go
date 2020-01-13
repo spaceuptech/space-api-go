@@ -12,16 +12,35 @@ func (s *Socket) setSocket(socket *websocket.Conn) {
 	s.socket = socket
 }
 
+func (s *Socket) checkIsConnecting() bool {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	if s.isConnecting {
+		return false
+	}
+
+	s.isConnecting = true
+	return true
+}
+
+func (s *Socket) resetIsConnecting() {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	s.isConnecting = false
+}
+
 func (s *Socket) getConnected() bool {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-	return s.isConnected
+	return s.isConnect
 }
 
 func (s *Socket) setConnected(value bool) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	s.isConnected = value
+	s.isConnect = value
 }
 
 func (s *Socket) setWriterChannel(ch chan model.WebsocketMessage) {
