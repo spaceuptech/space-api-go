@@ -5,31 +5,30 @@ import (
 	"strings"
 
 	"github.com/spaceuptech/space-api-go/config"
-	"github.com/spaceuptech/space-api-go/model"
-	"github.com/spaceuptech/space-api-go/utils"
+	"github.com/spaceuptech/space-api-go/types"
 )
 
 // Get contains the methods for the get operation
 type Get struct {
-	readOptions *model.ReadOptions
+	readOptions *types.ReadOptions
 	op          string
-	find        utils.M
+	find        types.M
 	config      *config.Config
-	meta        *model.Meta
+	meta        *types.Meta
 }
 
 func initGet(db, col, op string, config *config.Config) *Get {
-	meta := &model.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token, Operation: utils.Read}
-	f := make(utils.M)
-	return &Get{&model.ReadOptions{}, op, f, config, meta}
+	meta := &types.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token, Operation: types.Read}
+	f := make(types.M)
+	return &Get{&types.ReadOptions{}, op, f, config, meta}
 }
 
 // Where sets the where clause for the request
-func (g *Get) Where(conds ...utils.M) *Get {
+func (g *Get) Where(conds ...types.M) *Get {
 	if len(conds) == 1 {
-		g.find = utils.GenerateFind(conds[0])
+		g.find = types.GenerateFind(conds[0])
 	} else {
-		g.find = utils.GenerateFind(utils.And(conds...))
+		g.find = types.GenerateFind(types.And(conds...))
 	}
 	return g
 }
@@ -75,10 +74,10 @@ func (g *Get) Key(key string) *Get {
 }
 
 // Apply executes the operation and returns the result
-func (g *Get) Apply(ctx context.Context) (*model.Response, error) {
+func (g *Get) Apply(ctx context.Context) (*types.Response, error) {
 	return g.config.Transport.DoDBRequest(ctx, g.meta, g.createReadReq())
 }
 
-func (g *Get) createReadReq() *model.ReadRequest {
-	return &model.ReadRequest{Find: g.find, Operation: g.op, Options: g.readOptions}
+func (g *Get) createReadReq() *types.ReadRequest {
+	return &types.ReadRequest{Find: g.find, Operation: g.op, Options: g.readOptions}
 }

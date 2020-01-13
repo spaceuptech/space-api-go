@@ -1,32 +1,85 @@
 package realtime
 
 import (
-	"github.com/spaceuptech/space-api-go/model"
-	"github.com/spaceuptech/space-api-go/utils"
+	"fmt"
+	"log"
+
+	"github.com/mitchellh/mapstructure"
+
+	"github.com/spaceuptech/space-api-go/types"
 )
 
-func snapshotCallback(store model.DbStore, rows []FeedData) {
+// used internally
+func (l *LiveQuery) addSubscription(id string, c chan *types.SubscriptionEvent) func() {
+	return func() {
+		_, err := l.client.Request(types.TypeRealtimeUnsubscribe, types.RealtimeRequest{Group: l.col, ID: id, Options: l.options})
+		if err != nil {
+			log.Println("Failed to unsubscribe", err)
+		}
+		delete(l.store[l.db][l.col], id)
+		close(c)
+	}
+}
+
+func (l *LiveQuery) subscribe(id string, store *types.Store) *types.SubscriptionObject {
+	req := types.RealtimeRequest{DBType: l.db, Project: l.appID, Group: l.col, ID: id, Where: l.params.Find, Options: l.options}
+
+	data, err := l.client.Request(types.TypeRealtimeSubscribe, req)
+	if err != nil {
+		store.C <- types.NewSubscriptionEvent("", nil, nil, fmt.Errorf("error unable to subscribe to realtime feature %v", err))
+		store.Unsubscribe()
+	}
+
+	go func() {
+		store.Snapshot = make([]*types.SnapshotData, 0)
+		mapData, ok := data.(map[string]interface{})
+		if ok {
+			ack, ok := mapData["ack"]
+			if ok && !ack.(bool) {
+				err, ok := mapData["error"].(string)
+				if ok {
+					store.C <- types.NewSubscriptionEvent("", nil, nil, fmt.Errorf("error from server %v", err))
+					store.Unsubscribe()
+				}
+			}
+			docs := mapData["docs"].([]interface{})
+			for _, doc := range docs {
+				var feed feedData
+				if err := mapstructure.Decode(doc, &feed); err != nil {
+					log.Fatal("error while decoding map structure in realtime:", err)
+				}
+				store.Snapshot = append(store.Snapshot, &types.SnapshotData{Find: feed.Find, Time: feed.TimeStamp, Payload: feed.Payload, IsDeleted: false})
+				store.C <- types.NewSubscriptionEvent("initial", feed.Payload, l.params.Find, nil)
+			}
+		}
+	}()
+
+	return types.LiveQuerySubscriptionInit(store)
+}
+
+func snapshotCallback(store types.DbStore, rows []feedData) {
 	if len(rows) == 0 {
 		return
 	}
-	var obj = new(model.Store)
-	var opts = model.LiveQueryOptions{}
+	var obj = new(types.Store)
+	var opts = types.LiveQueryOptions{}
 	for _, data := range rows {
 		obj = store[data.DBType][data.Group][data.QueryID]
 		opts = obj.QueryOptions
+
 		if opts.ChangesOnly {
-			if !(opts.SkipInitial && data.Type == utils.RealtimeInitial) {
-				if data.Type != utils.RealtimeDelete {
-					obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
+			if !(opts.SkipInitial && data.Type == types.RealtimeInitial) {
+				if data.Type != types.RealtimeDelete {
+					obj.C <- types.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
 				} else {
-					obj.C <- model.NewSubscriptionEvent(data.Type, nil, data.Find, nil)
+					obj.C <- types.NewSubscriptionEvent(data.Type, nil, data.Find, nil)
 				}
 			}
 		} else {
-			if data.Type == utils.RealtimeInitial {
-				obj.Snapshot = append(obj.Snapshot, &model.SnapshotData{Find: data.Find, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false})
-				obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
-			} else if data.Type == utils.RealtimeInsert || data.Type == utils.RealtimeUpdate {
+			if data.Type == types.RealtimeInitial {
+				obj.Snapshot = append(obj.Snapshot, &types.SnapshotData{Find: data.Find, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false})
+				obj.C <- types.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
+			} else if data.Type == types.RealtimeInsert || data.Type == types.RealtimeUpdate {
 				isExisting := false
 				for _, row := range obj.Snapshot {
 					if validate(data.Find, row.Payload.(map[string]interface{})) {
@@ -35,21 +88,23 @@ func snapshotCallback(store model.DbStore, rows []FeedData) {
 							row.Time = data.TimeStamp
 							row.Payload = data.Payload
 							row.IsDeleted = false
-							obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
+							obj.C <- types.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
 						}
 					}
 				}
 				if !isExisting {
-					obj.Snapshot = append(obj.Snapshot, &model.SnapshotData{Find: data.Find, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false})
-					obj.C <- model.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
+					obj.Snapshot = append(obj.Snapshot, &types.SnapshotData{Find: data.Find, Time: data.TimeStamp, Payload: data.Payload, IsDeleted: false})
+					obj.C <- types.NewSubscriptionEvent(data.Type, data.Payload, data.Find, nil)
 				}
-			} else if data.Type == utils.RealtimeDelete {
+			} else if data.Type == types.RealtimeDelete {
 				for _, row := range obj.Snapshot {
-					if validate(row.Find, row.Payload.(map[string]interface{})) && row.Time <= data.TimeStamp {
-						row.Time = data.TimeStamp
-						row.Payload = map[string]interface{}{}
-						row.IsDeleted = true
-						obj.C <- model.NewSubscriptionEvent(data.Type, nil, data.Find, nil)
+					if validate(data.Find, row.Payload.(map[string]interface{})) {
+						if row.Time <= data.TimeStamp {
+							row.Time = data.TimeStamp
+							row.Payload = map[string]interface{}{}
+							row.IsDeleted = true
+							obj.C <- types.NewSubscriptionEvent(data.Type, nil, data.Find, nil)
+						}
 					}
 				}
 			}
@@ -69,32 +124,4 @@ func validate(find map[string]interface{}, doc map[string]interface{}) bool {
 		}
 	}
 	return true
-}
-
-// FeedData is the format to send realtime data
-type FeedData struct {
-	QueryID   string                 `json:"id" mapstructure:"id" structs:"id"`
-	Find      map[string]interface{} `json:"find" structs:"find"`
-	Type      string                 `json:"type" structs:"type"`
-	Payload   interface{}            `json:"payload" structs:"payload"`
-	TimeStamp int64                  `json:"time" structs:"time"`
-	Group     string                 `json:"group" structs:"group"`
-	DBType    string                 `json:"dbType" structs:"dbType"`
-	TypeName  string                 `json:"__typename,omitempty" structs:"__typename,omitempty"`
-}
-
-// RealtimeResponse is the object sent for realtime requests
-type RealtimeResponse struct {
-	Group string      `json:"group"` // Group is the collection name
-	ID    string      `json:"id"`    // id is the query id
-	Ack   bool        `json:"ack"`
-	Error string      `json:"error"`
-	Docs  []*FeedData `json:"docs"`
-}
-
-// Message is the request body of the message
-type Message struct {
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
-	ID   string      `json:"id"` // the request id
 }

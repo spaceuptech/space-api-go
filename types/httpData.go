@@ -1,4 +1,4 @@
-package model
+package types
 
 // type Meta struct {
 // 	Project string `json:"project"`
@@ -11,7 +11,7 @@ type Meta struct {
 	DbType, Col string
 	Token       string
 	Project     string
-	Operation string
+	Operation   string
 }
 
 // CreateRequest is the http body received for a create request

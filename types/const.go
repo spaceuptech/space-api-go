@@ -1,4 +1,4 @@
-package utils
+package types
 
 const (
 	// All is used when all the records needs to be worked on
@@ -8,7 +8,7 @@ const (
 	One string = "one"
 
 	// Read is used to Read documents
-	Read      string = "read"
+	Read string = "read"
 
 	Aggregate string = "aggr"
 
@@ -35,17 +35,6 @@ const (
 )
 
 const (
-	// Mongo is the constant for selecting MongoDB
-	Mongo string = "mongo"
-
-	// MySQL is the constant for selected MySQL
-	MySQL string = "sql-mysql"
-
-	// Postgres is the constant for selected Postgres
-	Postgres string = "sql-postgres"
-)
-
-const (
 	// TypeRealtimeSubscribe is the request type for live query subscription
 	TypeRealtimeSubscribe string = "realtime-subscribe"
 
@@ -54,27 +43,6 @@ const (
 
 	// TypeRealtimeFeed is the response type for realtime feed
 	TypeRealtimeFeed string = "realtime-feed"
-
-	// TypeServiceRegister is the request type for service registration
-	TypeServiceRegister string = "service-register"
-
-	// TypeServiceUnregister is the request type for service removal
-	TypeServiceUnregister string = "service-unregister"
-
-	// TypeServiceRequest is type triggering a service's function
-	TypeServiceRequest string = "service-request"
-
-	// TypePubsubSubscribe is type triggering a pubsub subscribe
-	TypePubsubSubscribe string = "pubsub-subscribe"
-
-	// TypePubsubSubscribeFeed is type having a pubsub subscribe feed
-	TypePubsubSubscribeFeed string = "pubsub-subscribe-feed"
-
-	// TypePubsubUnsubscribe is type triggering a pubsub unsubscribe
-	TypePubsubUnsubscribe string = "pubsub-unsubscribe"
-
-	// TypePubsubUnsubscribeAll is type triggering a pubsub unsubscribe all
-	TypePubsubUnsubscribeAll string = "pubsub-unsubscribe-all"
 )
 
 const (
@@ -89,8 +57,4 @@ const (
 
 	// RealtimeInitial is for initial operations
 	RealtimeInitial string = "initial"
-)
-const (
-	// PayloadSize is the size of the payload(in bytes) in file upload and download
-	PayloadSize int = 256 * 1024 // 256 kB
 )

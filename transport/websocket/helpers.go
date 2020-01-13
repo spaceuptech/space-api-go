@@ -3,7 +3,7 @@ package websocket
 import (
 	"github.com/gorilla/websocket"
 
-	"github.com/spaceuptech/space-api-go/model"
+	"github.com/spaceuptech/space-api-go/types"
 )
 
 func (s *Socket) setSocket(socket *websocket.Conn) {
@@ -43,7 +43,7 @@ func (s *Socket) setConnected(value bool) {
 	s.isConnect = value
 }
 
-func (s *Socket) setWriterChannel(ch chan model.WebsocketMessage) {
+func (s *Socket) setWriterChannel(ch chan types.WebsocketMessage) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	s.sendMessage = ch
@@ -74,8 +74,22 @@ func (s *Socket) getRegisteredCallBack(Type string) (func(data interface{}), boo
 	return fn, ok
 }
 
-func (s *Socket) addPendingMsg(msg model.WebsocketMessage) {
+func (s *Socket) addPendingMsg(msg types.WebsocketMessage) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	s.pendingMsg = append(s.pendingMsg, msg)
+}
+
+func (s *Socket) sendPendingMessages() {
+	s.mux.Lock()
+	messages := make([]types.WebsocketMessage, len(s.pendingMsg))
+	for i, msg := range s.pendingMsg {
+		messages[i] = msg
+	}
+	s.pendingMsg = []types.WebsocketMessage{}
+	s.mux.Unlock()
+
+	for _, msg := range messages {
+		s.sendMessage <- msg
+	}
 }

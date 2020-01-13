@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/spaceuptech/space-api-go/model"
+	"github.com/spaceuptech/space-api-go/types"
 )
 
 // Batch triggers the gRPC batch function on space cloud
-func (t *Transport) DoDBRequest(ctx context.Context, meta *model.Meta, req interface{}) (*model.Response, error) {
+func (t *Transport) DoDBRequest(ctx context.Context, meta *types.Meta, req interface{}) (*types.Response, error) {
 	url := t.generateDatabaseURL(meta)
 
 	// Fire the http request
@@ -18,14 +18,13 @@ func (t *Transport) DoDBRequest(ctx context.Context, meta *model.Meta, req inter
 	}
 
 	if status >= 200 && status < 300 {
-		return &model.Response{Status: status, Data: result}, nil
+		return &types.Response{Status: status, Data: result}, nil
 	}
 
-	return &model.Response{Status: status, Error: result["error"].(string)}, nil
+	return &types.Response{Status: status, Error: result["error"].(string)}, nil
 }
 
-
-func (t *Transport) generateDatabaseURL(meta *model.Meta) string {
+func (t *Transport) generateDatabaseURL(meta *types.Meta) string {
 	scheme := "http"
 	if t.sslEnabled {
 		scheme = "https"

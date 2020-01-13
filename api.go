@@ -7,10 +7,10 @@ import (
 	"github.com/spaceuptech/space-api-go/config"
 	"github.com/spaceuptech/space-api-go/db"
 	"github.com/spaceuptech/space-api-go/filestore"
-	"github.com/spaceuptech/space-api-go/model"
 	"github.com/spaceuptech/space-api-go/realtime"
 	"github.com/spaceuptech/space-api-go/transport"
 	"github.com/spaceuptech/space-api-go/transport/websocket"
+	"github.com/spaceuptech/space-api-go/types"
 )
 
 // API is the main API object to communicate with space cloud
@@ -45,7 +45,7 @@ func (api *API) DB(dbAlias string) *db.DB {
 }
 
 // Call invokes the specified function on the backend
-func (api *API) Call(service, endpoint string, params interface{}, timeout int) (*model.Response, error) {
+func (api *API) Call(service, endpoint string, params interface{}, timeout int) (*types.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 

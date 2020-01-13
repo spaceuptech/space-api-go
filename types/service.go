@@ -1,4 +1,4 @@
-package model
+package types
 
 // ServiceRequest is the api call request
 type ServiceRequest struct {

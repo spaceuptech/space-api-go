@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/spaceuptech/space-api-go/types"
 	"github.com/spaceuptech/space-api-go/utils"
 )
 
 const contentTypeJSON string = "application/json"
 
-func (t *Transport) makeHTTPRequest(ctx context.Context, token, url string, payload interface{}) (int, utils.M, error) {
+func (t *Transport) makeHTTPRequest(ctx context.Context, token, url string, payload interface{}) (int, types.M, error) {
 	// Marshal the payload
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -36,7 +37,7 @@ func (t *Transport) makeHTTPRequest(ctx context.Context, token, url string, payl
 	defer utils.CloseTheCloser(res.Body)
 
 	// Unmarshal the response
-	result := utils.M{}
+	result := types.M{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return -1, nil, err
 	}

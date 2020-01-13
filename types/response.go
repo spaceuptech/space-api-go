@@ -1,18 +1,16 @@
-package model
+package types
 
 import (
 	"errors"
 
 	"github.com/mitchellh/mapstructure"
-
-	"github.com/spaceuptech/space-api-go/utils"
 )
 
 // Response is the object recieved from the server. Status is the status code received from the server.
 // Data is either a map[string]interface{} or
 type Response struct {
 	Status int
-	Data   utils.M
+	Data   M
 	Error  string
 }
 

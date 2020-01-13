@@ -9,12 +9,12 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/spaceuptech/space-api-go/model"
+	"github.com/spaceuptech/space-api-go/types"
 	"github.com/spaceuptech/space-api-go/utils"
 )
 
 // CreateFolder creates a folder/directory on selected file store
-func (t *Transport) CreateFolder(ctx context.Context, project, path, name string) (*model.Response, error) {
+func (t *Transport) CreateFolder(ctx context.Context, project, path, name string) (*types.Response, error) {
 	// Create an http request
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, t.generateFileUploadURL(project), nil)
 	if err != nil {
@@ -41,20 +41,20 @@ func (t *Transport) CreateFolder(ctx context.Context, project, path, name string
 	defer utils.CloseTheCloser(res.Body)
 
 	// Unmarshal the response
-	result := utils.M{}
+	result := types.M{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
-		return &model.Response{Status: res.StatusCode, Data: nil}, nil
+		return &types.Response{Status: res.StatusCode, Data: nil}, nil
 	}
 
-	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
+	return &types.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
 // DeleteFile deletes file/directory from selected file store
-func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, path string) (*model.Response, error) {
+func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, path string) (*types.Response, error) {
 	// Clean query parameters
 	if meta == nil {
 		meta = map[string]int{}
@@ -79,20 +79,20 @@ func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, p
 	defer utils.CloseTheCloser(res.Body)
 
 	// Unmarshal the response
-	result := utils.M{}
+	result := types.M{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
-		return &model.Response{Status: res.StatusCode, Data: nil}, nil
+		return &types.Response{Status: res.StatusCode, Data: nil}, nil
 	}
 
-	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
+	return &types.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
 // List lists all the files/folders or both according to the mode under certain directory
-func (t *Transport) List(ctx context.Context, project, mode, path string) (*model.Response, error) {
+func (t *Transport) List(ctx context.Context, project, mode, path string) (*types.Response, error) {
 	if path == "" {
 		path = "/"
 	}
@@ -117,20 +117,20 @@ func (t *Transport) List(ctx context.Context, project, mode, path string) (*mode
 	defer utils.CloseTheCloser(res.Body)
 
 	// Unmarshal the response
-	result := utils.M{}
+	result := types.M{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
-		return &model.Response{Status: res.StatusCode, Data: result}, nil
+		return &types.Response{Status: res.StatusCode, Data: result}, nil
 	}
 
-	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
+	return &types.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
 // UploadFile creates a file in selected file store
-func (t *Transport) UploadFile(ctx context.Context, project, path, name string, meta interface{}, reader io.Reader) (*model.Response, error) {
+func (t *Transport) UploadFile(ctx context.Context, project, path, name string, meta interface{}, reader io.Reader) (*types.Response, error) {
 	r, writer := io.Pipe()
 
 	// Create an http request
@@ -198,16 +198,16 @@ func (t *Transport) UploadFile(ctx context.Context, project, path, name string, 
 	}
 
 	// Unmarshal the response
-	result := utils.M{}
+	result := types.M{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
-		return &model.Response{Status: res.StatusCode, Data: nil}, nil
+		return &types.Response{Status: res.StatusCode, Data: nil}, nil
 	}
 
-	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
+	return &types.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
 // DownloadFile downloads specified file from selected file store
@@ -256,7 +256,7 @@ func (t *Transport) generateFileUploadURL(project string) string {
 }
 
 // DoesExists checks if specified file exists in selected file store
-func (t *Transport) DoesExists(ctx context.Context, project, path string) (*model.Response, error) {
+func (t *Transport) DoesExists(ctx context.Context, project, path string) (*types.Response, error) {
 	if path == "" {
 		path = "/"
 	}
@@ -280,14 +280,14 @@ func (t *Transport) DoesExists(ctx context.Context, project, path string) (*mode
 	defer utils.CloseTheCloser(res.Body)
 
 	// Unmarshal the response
-	result := utils.M{}
+	result := types.M{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
-		return &model.Response{Status: res.StatusCode, Data: result}, nil
+		return &types.Response{Status: res.StatusCode, Data: result}, nil
 	}
 
-	return &model.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
+	return &types.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }

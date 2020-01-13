@@ -1,4 +1,7 @@
-package utils
+package types
+
+// M is a type representing a map
+type M map[string]interface{}
 
 // Cond is a function to write a condition
 func Cond(f1, eval string, f2 interface{}) M {
@@ -23,7 +26,7 @@ func GenerateFind(condition M) M {
 		conds := condition["conds"].([]M)
 		for _, c := range conds {
 			t := GenerateFind(c)
-			if typ, ok := c["type"]; (ok && typ == "cond") {
+			if typ, ok := c["type"]; ok && typ == "cond" {
 				if f1, ok := m[c["f1"].(string)]; ok {
 					for k, v := range t[c["f1"].(string)].(map[string]interface{}) {
 						f1.(map[string]interface{})[k] = v

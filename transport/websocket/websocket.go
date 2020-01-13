@@ -1,16 +1,14 @@
 package websocket
 
 import (
-	"errors"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
 
 	"github.com/spaceuptech/space-api-go/config"
-	"github.com/spaceuptech/space-api-go/model"
+	"github.com/spaceuptech/space-api-go/types"
 )
 
 type websocketOptions struct {
@@ -24,9 +22,9 @@ type Socket struct {
 	isConnecting         bool
 	connectedOnce        bool
 	options              websocketOptions
-	pendingMsg           []model.WebsocketMessage
+	pendingMsg           []types.WebsocketMessage
 	socket               *websocket.Conn
-	sendMessage          chan model.WebsocketMessage
+	sendMessage          chan types.WebsocketMessage
 	registerCallbackMap  map[string]func(data interface{})
 	onReconnectCallbacks []func()
 	mux                  sync.RWMutex
@@ -42,11 +40,11 @@ func Init(url string, config *config.Config) *Socket {
 		url:                 url,
 		options:             websocketOptions{projectId: config.Project, token: config.Token},
 		registerCallbackMap: map[string]func(data interface{}){},
-		pendingMsg:          []model.WebsocketMessage{},
+		pendingMsg:          []types.WebsocketMessage{},
 		mux:                 sync.RWMutex{},
 	}
 
-	writeMessage := make(chan model.WebsocketMessage)
+	writeMessage := make(chan types.WebsocketMessage)
 	s.setWriterChannel(writeMessage)
 
 	// create a websocket reader & writer
@@ -73,61 +71,18 @@ func (s *Socket) connect() error {
 
 	if s.isConnectedOnce() {
 		for _, fn := range s.onReconnectCallbacks {
-			fn()
+			go fn()
 		}
 	}
-
 	s.setConnectedOnce(true)
-
-	s.mux.Lock()
-	if len(s.pendingMsg) > 0 {
-		for _, payload := range s.pendingMsg {
-			if err := s.socket.WriteJSON(payload); err != nil {
-				log.Println("error writing pending messages into websocket", err)
-			}
-		}
-		s.pendingMsg = []model.WebsocketMessage{}
-	}
-	s.mux.Unlock()
-
+	s.sendPendingMessages()
 	return nil
-}
-
-func (s *Socket) Request(msgType string, data interface{}) (interface{}, error) {
-	if !s.getConnected() {
-		// connect to server
-		if err := s.connect(); err != nil {
-			return false, err
-		}
-	}
-
-	id := s.Send(msgType, data)
-
-	timer1 := time.NewTimer(10 * time.Second)
-	defer timer1.Stop()
-
-	// channel for receiving service register acknowledgement
-	ch := make(chan interface{})
-	defer close(ch)
-
-	s.RegisterCallback(id, func(data interface{}) {
-		ch <- data
-	})
-
-	select {
-	case <-timer1.C:
-		return false, errors.New("response time elapsed")
-	case msg := <-ch:
-		return msg, nil
-	}
 }
 
 func (s *Socket) writerRoutine() {
 	for msg := range s.sendMessage {
 		if !s.getConnected() {
-			s.mux.Lock()
-			s.pendingMsg = append(s.pendingMsg, msg)
-			s.mux.Unlock()
+			s.addPendingMsg(msg)
 			continue
 		}
 
@@ -137,16 +92,9 @@ func (s *Socket) writerRoutine() {
 	}
 }
 
-// Send sends a message to server over websocket protocol
-func (s *Socket) Send(Type string, data interface{}) string {
-	id := uuid.NewV1().String()
-	s.sendMessage <- model.WebsocketMessage{ID: id, Type: Type, Data: data}
-	return id
-}
-
 func (s *Socket) read() {
 	for {
-		msg := &model.WebsocketMessage{}
+		msg := &types.WebsocketMessage{}
 		if s.getConnected() {
 			if err := s.socket.ReadJSON(msg); err != nil {
 				log.Println("error reading from websocket", err)
@@ -156,7 +104,7 @@ func (s *Socket) read() {
 			}
 		} else {
 			if err := s.connect(); err != nil {
-				log.Println(err)
+				log.Println("Failed to connect to server:", err)
 				time.Sleep(5 * time.Second)
 				continue
 			}
@@ -166,9 +114,9 @@ func (s *Socket) read() {
 			if msg.ID != "" {
 				cb, ok := s.getRegisteredCallBack(msg.ID)
 				if ok {
-					log.Println(msg.ID)
 					go cb(msg.Data)
 					s.unregisterCallback(msg.ID)
+					continue
 				}
 			}
 

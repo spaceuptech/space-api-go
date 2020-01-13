@@ -1,12 +1,8 @@
-package model
+package types
 
 import (
 	"encoding/json"
-
-	"github.com/spaceuptech/space-api-go/utils"
 )
-
-const RealtimeUnsubscribe string = "realtime-unsubscribe"
 
 type DbStore map[string]ColStore
 type ColStore map[string]IdStore
@@ -30,35 +26,59 @@ type LiveQueryOptions struct {
 	SkipInitial bool `json:"skipInitial"`
 }
 
-type Store struct {
-	QueryOptions       LiveQueryOptions
-	Snapshot           []*SnapshotData
-	C                  chan *SubscriptionEvent
-	SubscriptionObject StoreSubscriptionObject
-	Find               interface{}
-	Options            interface{}
-}
-
-func LiveQuerySubscriptionInit(unsubscribeFunc func(), snapshot []SnapshotData, c chan *SubscriptionEvent) StoreSubscriptionObject {
-	return StoreSubscriptionObject{unsubscribeFunc: unsubscribeFunc, snapshot: snapshot, C: c}
-}
-
-func (l *StoreSubscriptionObject) GetSnapshot() []SnapshotData {
-	return l.snapshot
-}
-
-func (l *StoreSubscriptionObject) Unsubscribe() {
-	l.unsubscribeFunc()
-}
-
 type RealtimeParams struct {
-	Find utils.M
+	Find M
 }
 
-type StoreSubscriptionObject struct {
-	unsubscribeFunc func()
-	snapshot        []SnapshotData
-	C               chan *SubscriptionEvent
+type Store struct {
+	QueryOptions LiveQueryOptions
+	Snapshot     []*SnapshotData
+	C            chan *SubscriptionEvent
+	Find         interface{}
+	Options      interface{}
+	Unsubscribe  func()
+}
+
+func LiveQuerySubscriptionInit(store *Store) *SubscriptionObject {
+	return &SubscriptionObject{store: store}
+}
+
+type SubscriptionObject struct {
+	store *Store
+}
+
+func (s *SubscriptionObject) C() chan *SubscriptionEvent {
+	return s.store.C
+}
+
+func (s *SubscriptionObject) GetSnapshot() []DocumentSnapshot {
+	docs := make([]DocumentSnapshot, 0)
+	for _, v := range s.store.Snapshot {
+		if !v.IsDeleted {
+			docs = append(docs, DocumentSnapshot{doc: v})
+		}
+	}
+	return docs
+}
+
+// Unsubscribe
+func (s *SubscriptionObject) Unsubscribe() {
+	s.store.Unsubscribe()
+}
+
+// DocumentSnapshot contains the data and meta info of a single document
+type DocumentSnapshot struct {
+	doc *SnapshotData
+}
+
+// Unmarshal parses the document and stores the value into vPtr
+func (s *DocumentSnapshot) Unmarshal(vPtr interface{}) error {
+	data, err := json.Marshal(s.doc.Payload)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, vPtr)
 }
 
 type SubscriptionEvent struct {
@@ -91,9 +111,6 @@ func (s *SubscriptionEvent) Find() map[string]interface{} {
 func (s *SubscriptionEvent) Err() error {
 	return s.err
 }
-
-type SnapshotFunction func(interface{}, string, interface{})
-type OnErrorFunction func(error)
 
 type SnapshotData struct {
 	Find      map[string]interface{}
