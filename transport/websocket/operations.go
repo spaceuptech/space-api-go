@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/segmentio/ksuid"
 
 	"github.com/spaceuptech/space-api-go/types"
 )
@@ -62,7 +62,7 @@ func (s *Socket) Request(msgType string, data interface{}) (interface{}, error) 
 
 // Send sends a message to server over websocket protocol
 func (s *Socket) Send(Type string, data interface{}) string {
-	id := uuid.NewV1().String()
+	id := ksuid.New().String()
 	s.sendMessage <- types.WebsocketMessage{ID: id, Type: Type, Data: data}
 	return id
 }
