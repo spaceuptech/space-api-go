@@ -1,7 +1,7 @@
 package realtime
 
 import (
-	uuid "github.com/satori/go.uuid"
+	"github.com/segmentio/ksuid"
 
 	"github.com/spaceuptech/space-api-go/transport/websocket"
 
@@ -42,7 +42,8 @@ func (l *LiveQuery) Options(options *types.LiveQueryOptions) *LiveQuery {
 
 // Subscribe is used to subscribe to a new document
 func (l *LiveQuery) Subscribe() *types.SubscriptionObject {
-	id := uuid.NewV1().String()
+
+	id := ksuid.New().String()
 	_, ok := l.store[l.db]
 	if !ok {
 		l.store[l.db] = types.ColStore{}
