@@ -75,6 +75,8 @@ func GenerateFind(condition M) M {
 			m[f1] = map[string]interface{}{"$nin": f2}
 		case "regex":
 			m[f1] = map[string]interface{}{"$regex": f2}
+		case "contains":
+			m[f1] = map[string]interface{}{"$contains": f2}
 		}
 	}
 

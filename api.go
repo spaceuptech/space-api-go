@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/spaceuptech/space-api-go/eventing"
 	"time"
 
 	"github.com/spaceuptech/space-api-go/config"
@@ -55,4 +56,9 @@ func (api *API) Call(service, endpoint string, params interface{}, timeout int) 
 // FileStore creates a FileStore instance
 func (api *API) Filestore() *filestore.Filestore {
 	return filestore.New(api.config)
+}
+
+// QueueEvent creates a Eventing instance
+func (api *API) QueueEvent(eventType string, payload map[string]interface{}) *eventing.Eventing {
+	return eventing.New(eventType, payload, api.config)
 }
