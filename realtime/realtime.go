@@ -1,8 +1,6 @@
 package realtime
 
 import (
-	"log"
-
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/spaceuptech/space-api-go/transport/websocket"
@@ -39,7 +37,7 @@ func Init(appID string, client *websocket.Socket) *Realtime {
 	r.client.RegisterCallback(types.TypeRealtimeFeed, func(data interface{}) {
 		var feed feedData
 		if err := mapstructure.Decode(data, &feed); err != nil {
-			log.Fatal("error while decoding map structure in realtime:", err)
+			return
 		}
 		snapshotCallback(r.store, []feedData{feed})
 	})

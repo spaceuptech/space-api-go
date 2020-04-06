@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -60,7 +59,6 @@ func (s *Socket) connect() error {
 	}
 	conn, _, err := websocket.DefaultDialer.Dial(s.url, nil)
 	if err != nil {
-		log.Println("websocket dialer error", err)
 		s.resetIsConnecting()
 		return err
 	}
@@ -87,7 +85,6 @@ func (s *Socket) writerRoutine() {
 		}
 
 		if err := s.socket.WriteJSON(msg); err != nil {
-			log.Println("error writing into websocket", err)
 		}
 	}
 }
@@ -97,14 +94,12 @@ func (s *Socket) read() {
 		msg := &types.WebsocketMessage{}
 		if s.getConnected() {
 			if err := s.socket.ReadJSON(msg); err != nil {
-				log.Println("error reading from websocket", err)
 				s.setConnected(false)
 				time.Sleep(5 * time.Second)
 				continue
 			}
 		} else {
 			if err := s.connect(); err != nil {
-				log.Println("Failed to connect to server:", err)
 				time.Sleep(5 * time.Second)
 				continue
 			}
