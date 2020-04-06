@@ -84,8 +84,7 @@ func (s *Socket) writerRoutine() {
 			continue
 		}
 
-		if err := s.socket.WriteJSON(msg); err != nil {
-		}
+		_ = s.socket.WriteJSON(msg)
 	}
 }
 

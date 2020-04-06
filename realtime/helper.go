@@ -11,9 +11,7 @@ import (
 // used internally
 func (l *LiveQuery) addSubscription(id string, c chan *types.SubscriptionEvent) func() {
 	return func() {
-		_, err := l.client.Request(types.TypeRealtimeUnsubscribe, types.RealtimeRequest{Group: l.col, ID: id, Options: l.options})
-		if err != nil {
-		}
+		_, _ = l.client.Request(types.TypeRealtimeUnsubscribe, types.RealtimeRequest{Group: l.col, ID: id, Options: l.options})
 		delete(l.store[l.db][l.col], id)
 		close(c)
 	}

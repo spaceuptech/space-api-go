@@ -2,6 +2,8 @@ package eventing
 
 import (
 	"context"
+	"time"
+
 	"github.com/spaceuptech/space-api-go/config"
 	"github.com/spaceuptech/space-api-go/types"
 )
@@ -41,8 +43,8 @@ func (d *Eventing) Delay(delay int64) *Eventing {
 }
 
 // TimeStamp schedule an event trigger at the given timestamp (in milliseconds)
-func (d *Eventing) TimeStamp(timestamp string) *Eventing {
-	d.event.Timestamp = timestamp
+func (d *Eventing) TimeStamp(timestamp time.Time) *Eventing {
+	d.event.Timestamp = timestamp.Format(time.RFC3339)
 	return d
 }
 
