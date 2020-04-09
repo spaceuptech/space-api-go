@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-	"strings"
-
 	"github.com/spaceuptech/space-api-go/config"
 	"github.com/spaceuptech/space-api-go/types"
 )
@@ -41,15 +39,7 @@ func (g *Get) Select(sel map[string]int32) *Get {
 
 // Sort sorts the result
 func (g *Get) Sort(order ...string) *Get {
-	ord := make(map[string]int32)
-	for _, o := range order {
-		if strings.HasPrefix(o, "-") {
-			ord[o[1:]] = -1
-		} else {
-			ord[o] = 1
-		}
-	}
-	g.readOptions.Sort = ord
+	g.readOptions.Sort = order
 	return g
 }
 

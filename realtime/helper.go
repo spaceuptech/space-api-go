@@ -2,7 +2,6 @@ package realtime
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -12,10 +11,7 @@ import (
 // used internally
 func (l *LiveQuery) addSubscription(id string, c chan *types.SubscriptionEvent) func() {
 	return func() {
-		_, err := l.client.Request(types.TypeRealtimeUnsubscribe, types.RealtimeRequest{Group: l.col, ID: id, Options: l.options})
-		if err != nil {
-			log.Println("Failed to unsubscribe", err)
-		}
+		_, _ = l.client.Request(types.TypeRealtimeUnsubscribe, types.RealtimeRequest{Group: l.col, ID: id, Options: l.options})
 		delete(l.store[l.db][l.col], id)
 		close(c)
 	}
@@ -46,7 +42,7 @@ func (l *LiveQuery) subscribe(id string, store *types.Store) *types.Subscription
 			for _, doc := range docs {
 				var feed feedData
 				if err := mapstructure.Decode(doc, &feed); err != nil {
-					log.Fatal("error while decoding map structure in realtime:", err)
+					continue
 				}
 				store.Snapshot = append(store.Snapshot, &types.SnapshotData{Find: feed.Find, Time: feed.TimeStamp, Payload: feed.Payload, IsDeleted: false})
 				store.C <- types.NewSubscriptionEvent("initial", feed.Payload, l.params.Find, nil)

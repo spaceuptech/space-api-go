@@ -1,6 +1,3 @@
-.idea
-.vscode
-
 test
 
 # Binaries for programs and plugins
@@ -16,6 +13,8 @@ test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+main/main.go
 
 node_modules
 css

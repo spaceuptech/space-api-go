@@ -6,7 +6,7 @@ import (
 	"github.com/spaceuptech/space-api-go/types"
 )
 
-// DB is the client responsible to commuicate with the DB crud module
+// DB is the client responsible to communicate with the DB crud module
 type DB struct {
 	config   *config.Config
 	realTime *realtime.Realtime

@@ -20,7 +20,7 @@ func (res *Response) Unmarshal(v interface{}) error {
 	if res.Status < 200 || res.Status >= 300 {
 		return errors.New("Result not present")
 	}
-	return mapstructure.Decode(res.Data, v)
+	return mapstructure.Decode(res.Data["result"], v)
 }
 
 // Raw returns the raw map
