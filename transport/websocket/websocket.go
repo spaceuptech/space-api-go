@@ -46,8 +46,7 @@ func Init(url string, config *config.Config) *Socket {
 	writeMessage := make(chan types.WebsocketMessage)
 	s.setWriterChannel(writeMessage)
 
-	// create a websocket reader & writer
-	go s.read()
+	// create a websocket writer
 	go s.writerRoutine()
 
 	return s
@@ -78,6 +77,7 @@ func (s *Socket) connect() error {
 }
 
 func (s *Socket) writerRoutine() {
+	var isStartReader = true
 	for msg := range s.sendMessage {
 		if !s.getConnected() {
 			s.addPendingMsg(msg)
@@ -85,6 +85,10 @@ func (s *Socket) writerRoutine() {
 		}
 
 		_ = s.socket.WriteJSON(msg)
+		if isStartReader {
+			go s.read()
+			isStartReader = false
+		}
 	}
 }
 
