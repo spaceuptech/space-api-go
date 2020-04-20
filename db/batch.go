@@ -30,8 +30,8 @@ func initBatch(db string, config *config.Config) *Batch {
 }
 
 // Add adds a delete request to batch
-func (b *Batch) Add(request *Request) error {
-	req := *request
+func (b *Batch) Add(request Request) error {
+	req := request
 	if b.config.Project != req.getProject() {
 		return errors.New("Cannot Batch Requests of Different Projects")
 	}
