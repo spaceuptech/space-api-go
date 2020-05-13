@@ -22,9 +22,11 @@ type CreateRequest struct {
 
 // ReadRequest is the http body received for a read request
 type ReadRequest struct {
-	Find      map[string]interface{} `json:"find"`
-	Operation string                 `json:"op"`
-	Options   *ReadOptions           `json:"options"`
+	GroupBy   []interface{}                `json:"group"`
+	Aggregate map[string]map[string]string `json:"aggregate"`
+	Find      map[string]interface{}       `json:"find"`
+	Operation string                       `json:"op"`
+	Options   *ReadOptions                 `json:"options"`
 }
 
 // ReadOptions is the options required for a read request
