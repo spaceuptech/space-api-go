@@ -12,7 +12,7 @@ type Get struct {
 	readOptions *types.ReadOptions
 	op          string
 	find        types.M
-	aggregate   map[string]map[string]string
+	aggregate   map[string][]string
 	group       []interface{}
 	config      *config.Config
 	meta        *types.Meta
@@ -21,7 +21,7 @@ type Get struct {
 func initGet(db, col, op string, config *config.Config) *Get {
 	meta := &types.Meta{Col: col, DbType: db, Project: config.Project, Token: config.Token, Operation: types.Read}
 	f := make(types.M)
-	return &Get{&types.ReadOptions{}, op, f, map[string]map[string]string{}, make([]interface{}, 0), config, meta}
+	return &Get{&types.ReadOptions{}, op, f, map[string][]string{}, make([]interface{}, 0), config, meta}
 }
 
 // Where sets the where clause for the request
@@ -77,32 +77,32 @@ func (g *Get) GroupBy(values ...string) *Get {
 }
 
 // Key sets the key for the distinct query
-func (g *Get) AggregateCount(col string) *Get {
-	g.aggregate = map[string]map[string]string{"aggregate": {"count": col}}
+func (g *Get) AggregateCount(cols ...string) *Get {
+	g.aggregate["count"] = cols
 	return g
 }
 
 // Key sets the key for the distinct query
-func (g *Get) AggregateMax(col string) *Get {
-	g.aggregate = map[string]map[string]string{"aggregate": {"max": col}}
+func (g *Get) AggregateMax(cols ...string) *Get {
+	g.aggregate["max"] = cols
 	return g
 }
 
 // Key sets the key for the distinct query
-func (g *Get) AggregateMin(col string) *Get {
-	g.aggregate = map[string]map[string]string{"aggregate": {"min": col}}
+func (g *Get) AggregateMin(cols ...string) *Get {
+	g.aggregate["min"] = cols
 	return g
 }
 
 // Key sets the key for the distinct query
-func (g *Get) AggregateAverage(col string) *Get {
-	g.aggregate = map[string]map[string]string{"aggregate": {"avg": col}}
+func (g *Get) AggregateAverage(cols ...string) *Get {
+	g.aggregate["avg"] = cols
 	return g
 }
 
 // Key sets the key for the distinct query
-func (g *Get) AggregateSum(col string) *Get {
-	g.aggregate = map[string]map[string]string{"aggregate": {"sum": col}}
+func (g *Get) AggregateSum(cols ...string) *Get {
+	g.aggregate["sum"] = cols
 	return g
 }
 
