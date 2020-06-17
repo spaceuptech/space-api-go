@@ -32,6 +32,9 @@ const (
 
 	// Create is used to create documents
 	Create string = "create"
+
+	// PreparedQueries TODO
+	PreparedQueries string = "prepared-queries"
 )
 
 const (

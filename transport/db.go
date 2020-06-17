@@ -33,6 +33,9 @@ func (t *Transport) generateDatabaseURL(meta *types.Meta) string {
 	if meta.Operation == types.Batch {
 		return fmt.Sprintf("%s://%s/v1/api/%s/crud/%s/batch", scheme, t.addr, meta.Project, meta.DbType)
 	}
+	if meta.Operation == types.PreparedQueries {
+		return fmt.Sprintf("%s://%s/v1/api/%s/crud/%s/prepared-queries/%s", scheme, t.addr, meta.Project, meta.DbType, meta.ID)
+	}
 
 	return fmt.Sprintf("%s://%s/v1/api/%s/crud/%s/%s/%s", scheme, t.addr, meta.Project, meta.DbType, meta.Col, meta.Operation)
 }
