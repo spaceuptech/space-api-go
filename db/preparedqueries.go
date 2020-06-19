@@ -9,18 +9,17 @@ import (
 
 // PreparedQuery contains the methods for the PreparedQueries operation
 type PreparedQuery struct {
-	//id       string
 	args     map[string]interface{}
 	config   *config.Config
 	httpMeta *types.Meta
 }
 
-func initPreparedQueries(db, id string, config *config.Config) *PreparedQuery {
+func initPreparedQuery(db, id string, config *config.Config) *PreparedQuery {
 	meta := &types.Meta{ID: id, DbType: db, Project: config.Project, Token: config.Token, Operation: types.PreparedQueries}
 	return &PreparedQuery{config: config, httpMeta: meta}
 }
 
-//Args TODO
+//Args sets the Arguments to be passed to prepared query
 func (p *PreparedQuery) Args(args map[string]interface{}) *PreparedQuery {
 	p.args = args
 	return p

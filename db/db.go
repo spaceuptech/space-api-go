@@ -88,9 +88,9 @@ func (d *DB) LiveQuery(col string) *realtime.LiveQuery {
 	return d.realTime.LiveQuery(d.db, col)
 }
 
-// PreparedQueries returns a helper to fire a PreparedQueries request
-func (d *DB) PreparedQueries(id string) *PreparedQuery {
-	return initPreparedQueries(d.db, id, d.config)
+// PreparedQuery returns a helper to fire a PreparedQueries request
+func (d *DB) PreparedQuery(id string) *PreparedQuery {
+	return initPreparedQuery(d.db, id, d.config)
 }
 
 // TODO: add support for the user management module
