@@ -8,16 +8,21 @@ package types
 // }
 
 type Meta struct {
-	DbType, Col string
-	Token       string
-	Project     string
-	Operation   string
+	DbType, Col, ID string
+	Token           string
+	Project         string
+	Operation       string
 }
 
 // CreateRequest is the http body received for a create request
 type CreateRequest struct {
 	Document  interface{} `json:"doc"`
 	Operation string      `json:"op"`
+}
+
+// PreparedQueryRequest is the http body received for a PreparedQuery request
+type PreparedQueryRequest struct {
+	Params map[string]interface{} `json:"params"`
 }
 
 // ReadRequest is the http body received for a read request

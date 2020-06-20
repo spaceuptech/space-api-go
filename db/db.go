@@ -88,6 +88,11 @@ func (d *DB) LiveQuery(col string) *realtime.LiveQuery {
 	return d.realTime.LiveQuery(d.db, col)
 }
 
+// PreparedQuery returns a helper to fire a PreparedQueries request
+func (d *DB) PreparedQuery(id string) *PreparedQuery {
+	return initPreparedQuery(d.db, id, d.config)
+}
+
 // TODO: add support for the user management module
 // // Profile fires a profile request
 // func (d *DB) Profile(ctx context.Context, id string) (*types.response, error) {
