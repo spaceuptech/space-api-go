@@ -239,16 +239,18 @@ func (t *Transport) DownloadFile(ctx context.Context, project, path string, writ
 	}
 	defer utils.CloseTheCloser(res.Body)
 
-	_, err = io.Copy(writer, res.Body)
-	if err != nil {
-		return fmt.Errorf("error downloading file unable to write")
-	}
-
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		_, err = io.Copy(writer, res.Body)
+		if err != nil {
+			return fmt.Errorf("error downloading file unable to write")
+		}
 		return nil
 	}
 
-	return fmt.Errorf("error downloading file status code - %v", res.StatusCode)
+	v := map[string]interface{}{}
+	_ = json.NewDecoder(res.Body).Decode(&v)
+
+	return fmt.Errorf("error downloading file status code - %v got error %v", res.StatusCode, v["error"])
 }
 
 func (t *Transport) generateFileUploadURL(project string) string {
