@@ -23,35 +23,35 @@ func New(config *config.Config) *Filestore {
 func (f *Filestore) CreateFolder(path, name string) (*types.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return f.config.Transport.CreateFolder(ctx, f.config.Project, path, name)
+	return f.config.Transport.CreateFolder(f.config.Project, path, name, ctx, f.config.Token)
 }
 
 func (f *Filestore) DeleteFile(path string, meta interface{}) (*types.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return f.config.Transport.DeleteFile(ctx, meta, f.config.Project, path)
+	return f.config.Transport.DeleteFile(ctx, meta, f.config.Project, path, f.config.Token)
 }
 
 func (f *Filestore) ListFiles(listWhat, path string) (*types.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return f.config.Transport.List(ctx, f.config.Project, listWhat, path)
+	return f.config.Transport.List(ctx, f.config.Project, listWhat, path, f.config.Token)
 }
 
 func (f *Filestore) UploadFile(path, name string, meta interface{}, reader io.Reader) (*types.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return f.config.Transport.UploadFile(ctx, f.config.Project, path, name, meta, reader)
+	return f.config.Transport.UploadFile(ctx, f.config.Project, path, name, meta, reader, f.config.Token)
 }
 
 func (f *Filestore) DownloadFile(path string, writer io.Writer) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return f.config.Transport.DownloadFile(ctx, f.config.Project, path, writer)
+	return f.config.Transport.DownloadFile(ctx, f.config.Project, path, writer, f.config.Token)
 }
 
 func (f *Filestore) DoesFileOrFolderExists(path string) (*types.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return f.config.Transport.DoesExists(ctx, f.config.Project, path)
+	return f.config.Transport.DoesExists(ctx, f.config.Project, path, f.config.Token)
 }
