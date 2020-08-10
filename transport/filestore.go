@@ -14,7 +14,7 @@ import (
 )
 
 // CreateFolder creates a folder/directory on selected file store
-func (t *Transport) CreateFolder(project, path, name string, ctx context.Context, token string) (*types.Response, error) {
+func (t *Transport) CreateFolder(ctx context.Context, project, path, name, token string) (*types.Response, error) {
 	// Create an http request
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, t.generateFileUploadURL(project), nil)
 	if err != nil {

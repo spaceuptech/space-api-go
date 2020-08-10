@@ -23,7 +23,7 @@ func New(config *config.Config) *Filestore {
 func (f *Filestore) CreateFolder(path, name string) (*types.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return f.config.Transport.CreateFolder(f.config.Project, path, name, ctx, f.config.Token)
+	return f.config.Transport.CreateFolder(ctx, f.config.Project, path, name, f.config.Token)
 }
 
 func (f *Filestore) DeleteFile(path string, meta interface{}) (*types.Response, error) {
