@@ -14,7 +14,7 @@ import (
 )
 
 // CreateFolder creates a folder/directory on selected file store
-func (t *Transport) CreateFolder(ctx context.Context, project, path, name string) (*types.Response, error) {
+func (t *Transport) CreateFolder(ctx context.Context, project, path, name, token string) (*types.Response, error) {
 	// Create an http request
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, t.generateFileUploadURL(project), nil)
 	if err != nil {
@@ -32,6 +32,7 @@ func (t *Transport) CreateFolder(ctx context.Context, project, path, name string
 	q.Add("makeAll", "true")
 	q.Add("name", name)
 	req.URL.RawQuery = q.Encode()
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	// send the http request
 	res, err := http.DefaultClient.Do(req)
@@ -54,7 +55,7 @@ func (t *Transport) CreateFolder(ctx context.Context, project, path, name string
 }
 
 // DeleteFile deletes file/directory from selected file store
-func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, path string) (*types.Response, error) {
+func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, path, token string) (*types.Response, error) {
 	// Clean query parameters
 	if meta == nil {
 		meta = map[string]int{}
@@ -70,6 +71,7 @@ func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, p
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	// send the http request
 	res, err := http.DefaultClient.Do(req)
@@ -92,7 +94,7 @@ func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, p
 }
 
 // List lists all the files/folders or both according to the mode under certain directory
-func (t *Transport) List(ctx context.Context, project, mode, path string) (*types.Response, error) {
+func (t *Transport) List(ctx context.Context, project, mode, path, token string) (*types.Response, error) {
 	if path == "" {
 		path = "/"
 	}
@@ -101,6 +103,7 @@ func (t *Transport) List(ctx context.Context, project, mode, path string) (*type
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	// Set the url parameters
 	q := req.URL.Query()
@@ -130,7 +133,7 @@ func (t *Transport) List(ctx context.Context, project, mode, path string) (*type
 }
 
 // UploadFile creates a file in selected file store
-func (t *Transport) UploadFile(ctx context.Context, project, path, name string, meta interface{}, reader io.Reader) (*types.Response, error) {
+func (t *Transport) UploadFile(ctx context.Context, project, path, name string, meta interface{}, reader io.Reader, token string) (*types.Response, error) {
 	r, writer := io.Pipe()
 
 	// Create an http request
@@ -138,6 +141,7 @@ func (t *Transport) UploadFile(ctx context.Context, project, path, name string, 
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	// Create a multipart mwriter
 	mwriter := multipart.NewWriter(writer)
@@ -211,7 +215,7 @@ func (t *Transport) UploadFile(ctx context.Context, project, path, name string, 
 }
 
 // DownloadFile downloads specified file from selected file store
-func (t *Transport) DownloadFile(ctx context.Context, project, path string, writer io.Writer) error {
+func (t *Transport) DownloadFile(ctx context.Context, project, path string, writer io.Writer, token string) error {
 	if path == "" {
 		path = "/"
 	}
@@ -220,6 +224,7 @@ func (t *Transport) DownloadFile(ctx context.Context, project, path string, writ
 	if err != nil {
 		return err
 	}
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	// Set the url parameters
 	q := req.URL.Query()
@@ -234,16 +239,18 @@ func (t *Transport) DownloadFile(ctx context.Context, project, path string, writ
 	}
 	defer utils.CloseTheCloser(res.Body)
 
-	_, err = io.Copy(writer, res.Body)
-	if err != nil {
-		return fmt.Errorf("error downloading file unable to write")
-	}
-
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		_, err = io.Copy(writer, res.Body)
+		if err != nil {
+			return fmt.Errorf("error downloading file unable to write")
+		}
 		return nil
 	}
 
-	return fmt.Errorf("error downloading file status code - %v", res.StatusCode)
+	v := map[string]interface{}{}
+	_ = json.NewDecoder(res.Body).Decode(&v)
+
+	return fmt.Errorf("error downloading file status code - %v got error %v", res.StatusCode, v["error"])
 }
 
 func (t *Transport) generateFileUploadURL(project string) string {
@@ -256,7 +263,7 @@ func (t *Transport) generateFileUploadURL(project string) string {
 }
 
 // DoesExists checks if specified file exists in selected file store
-func (t *Transport) DoesExists(ctx context.Context, project, path string) (*types.Response, error) {
+func (t *Transport) DoesExists(ctx context.Context, project, path, token string) (*types.Response, error) {
 	if path == "" {
 		path = "/"
 	}
@@ -265,6 +272,7 @@ func (t *Transport) DoesExists(ctx context.Context, project, path string) (*type
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	// Set the url parameters
 	q := req.URL.Query()
