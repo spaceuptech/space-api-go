@@ -54,6 +54,45 @@ func (t *Transport) CreateFolder(ctx context.Context, project, path, name, token
 	return &types.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
 }
 
+// DeleteDir deletes directory from selected file store
+func (t *Transport) DeleteDir(ctx context.Context, meta interface{}, project, path, token string) (*types.Response, error) {
+	// Clean query parameters
+	if meta == nil {
+		meta = map[string]int{}
+	}
+	metaJSON, _ := json.Marshal(meta)
+
+	if path == "" {
+		path = "/"
+	}
+	path = path + "?fileType=folder"
+	// Create an http request
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, t.generateFileUploadURL(project)+path, bytes.NewBuffer(metaJSON))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	// send the http request
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer utils.CloseTheCloser(res.Body)
+
+	// Unmarshal the response
+	result := types.M{}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		return &types.Response{Status: res.StatusCode, Data: nil}, nil
+	}
+
+	return &types.Response{Status: res.StatusCode, Error: result["error"].(string)}, nil
+}
+
 // DeleteFile deletes file/directory from selected file store
 func (t *Transport) DeleteFile(ctx context.Context, meta interface{}, project, path, token string) (*types.Response, error) {
 	// Clean query parameters
