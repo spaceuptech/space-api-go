@@ -28,7 +28,7 @@ func (f *Filestore) DeleteFile(ctx context.Context, path string, meta interface{
 }
 
 func (f *Filestore) DeleteFolder(ctx context.Context, path string, meta interface{}) (*types.Response, error) {
-	return f.config.Transport.DeleteFile(ctx, meta, f.config.Project, path, f.config.Token)
+	return f.config.Transport.DeleteFolder(ctx, meta, f.config.Project, path, f.config.Token)
 }
 
 func (f *Filestore) ListFiles(ctx context.Context, listWhat, path string) (*types.Response, error) {
