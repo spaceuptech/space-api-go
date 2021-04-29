@@ -30,6 +30,13 @@ func New(project, url string, sslEnabled bool) *API {
 	return &API{config: c, socket: w, realtime: r}
 }
 
+// Ping check if connection is established with space cloud
+func (api *API) Ping() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return api.config.Transport.Ping(ctx, api.config.Token)
+}
+
 // SetToken sets the JWT token to be used in each request
 func (api *API) SetToken(token string) {
 	api.config.Token = token
